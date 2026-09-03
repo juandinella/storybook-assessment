@@ -6,7 +6,7 @@ const buttonVariants = cva(
   [
     'inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)]',
     'px-3 py-2 text-sm font-semibold transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:ring-offset-bg-page',
     'disabled:pointer-events-none disabled:opacity-50',
   ].join(' '),
   {
