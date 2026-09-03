@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+@import '../tokens/tokens.css';
+
+@theme inline {
+  --color-bg-page: var(--color-bg-page);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-subtle: var(--color-bg-subtle);
+  --color-bg-muted: var(--color-bg-muted);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-default: var(--color-border-default);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-sage: var(--color-sage);
+  --color-sage-surface: var(--color-sage-surface);
+  --color-peach: var(--color-peach);
+  --color-peach-surface: var(--color-peach-surface);
+  --color-danger: var(--color-danger);
+  --color-danger-surface: var(--color-danger-surface);
+  --color-focus: var(--color-focus);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --font-sans: var(--font-sans);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
