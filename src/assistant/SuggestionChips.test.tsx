@@ -5,25 +5,54 @@ import { sampleSuggestions } from '@/fixtures';
 import { SuggestionChips } from './SuggestionChips';
 
 describe('SuggestionChips', () => {
-  it('submits the exact selected prompt by click and keyboard', async () => {
+  it('submits the exact selected prompt by click', async () => {
     const user = userEvent.setup();
     const onSuggestionSelect = vi.fn();
-    render(<SuggestionChips suggestions={sampleSuggestions} onSuggestionSelect={onSuggestionSelect} />);
+    render(
+      <SuggestionChips
+        suggestions={sampleSuggestions}
+        onSuggestionSelect={onSuggestionSelect}
+      />,
+    );
 
-    await user.click(screen.getByRole('button', { name: sampleSuggestions[0] }));
-    expect(onSuggestionSelect).toHaveBeenNthCalledWith(1, sampleSuggestions[0]);
+    await user.click(
+      screen.getByRole('button', { name: sampleSuggestions[0] }),
+    );
+    expect(onSuggestionSelect).toHaveBeenCalledWith(sampleSuggestions[0]);
+    expect(onSuggestionSelect).toHaveBeenCalledTimes(1);
+  });
+
+  it('submits the exact selected prompt by keyboard', async () => {
+    const user = userEvent.setup();
+    const onSuggestionSelect = vi.fn();
+    render(
+      <SuggestionChips
+        suggestions={sampleSuggestions}
+        onSuggestionSelect={onSuggestionSelect}
+      />,
+    );
+
     await user.tab();
-    expect(screen.getByRole('button', { name: sampleSuggestions[1] })).toHaveFocus();
+    await user.tab();
+    expect(
+      screen.getByRole('button', { name: sampleSuggestions[1] }),
+    ).toHaveFocus();
     await user.keyboard('{Enter}');
 
-    expect(onSuggestionSelect).toHaveBeenNthCalledWith(2, sampleSuggestions[1]);
-    expect(onSuggestionSelect).toHaveBeenCalledTimes(2);
+    expect(onSuggestionSelect).toHaveBeenCalledWith(sampleSuggestions[1]);
+    expect(onSuggestionSelect).toHaveBeenCalledTimes(1);
   });
 
   it('does not activate disabled suggestions', async () => {
     const user = userEvent.setup();
     const onSuggestionSelect = vi.fn();
-    render(<SuggestionChips suggestions={sampleSuggestions} disabled onSuggestionSelect={onSuggestionSelect} />);
+    render(
+      <SuggestionChips
+        suggestions={sampleSuggestions}
+        disabled
+        onSuggestionSelect={onSuggestionSelect}
+      />,
+    );
 
     for (const button of screen.getAllByRole('button')) {
       expect(button).toBeDisabled();

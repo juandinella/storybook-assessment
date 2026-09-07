@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import { Button } from '@/primitives';
+import { Button } from '@/primitives/Button';
 import type { SuggestionChipsProps } from './types';
 
 export function SuggestionChips({
