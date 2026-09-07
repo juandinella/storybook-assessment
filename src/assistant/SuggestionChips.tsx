@@ -1,15 +1,32 @@
+import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/primitives';
 import type { SuggestionChipsProps } from './types';
 
-/** Each suggestion is an immediate submission, not a draft replacement. */
-export function SuggestionChips({ suggestions, onSuggestionSelect, disabled = false }: SuggestionChipsProps) {
+export function SuggestionChips({
+  suggestions,
+  onSuggestionSelect,
+  disabled = false,
+}: SuggestionChipsProps) {
   return (
-    <ul aria-label="Suggested prompts" className="flex flex-col gap-2">
+    <ul
+      aria-label="Suggested questions"
+      className="m-0 list-none space-y-2 p-0"
+    >
       {suggestions.map((prompt) => (
         <li key={prompt}>
-          <Button variant="secondary" disabled={disabled}
-            className="h-auto min-h-11 w-full justify-start rounded-md px-3 py-3 text-left font-normal whitespace-normal text-text-primary [overflow-wrap:anywhere]"
-            onClick={() => onSuggestionSelect(prompt)}>{prompt}</Button>
+          <Button
+            variant="secondary"
+            disabled={disabled}
+            onClick={() => onSuggestionSelect(prompt)}
+            className="h-auto min-h-12 w-full justify-between gap-3 px-3 py-2.5 text-left leading-5 font-medium whitespace-normal text-text-primary hover:border-sage hover:bg-sage-surface"
+          >
+            <span>{prompt}</span>
+            <ArrowUpRight
+              size={16}
+              className="shrink-0 text-accent"
+              aria-hidden="true"
+            />
+          </Button>
         </li>
       ))}
     </ul>
