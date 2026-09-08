@@ -57,13 +57,35 @@ describe('AssistantMessage', () => {
     );
 
     const sources = within(screen.getByRole('list', { name: 'Sources' }));
+    const sourceNames = [
+      `Document: ${sampleCitations[0].title}`,
+      sampleCitations[1].title,
+      `Note: ${sampleCitations[2].title}`,
+    ];
     for (const [index, citation] of sampleCitations.entries()) {
-      const kind = citation.kind[0].toUpperCase() + citation.kind.slice(1);
       await user.click(
-        sources.getByRole('button', { name: `${kind}: ${citation.title}` }),
+        sources.getByRole('button', { name: sourceNames[index] }),
       );
       expect(onCitationClick).toHaveBeenNthCalledWith(index + 1, citation);
     }
     expect(onCitationClick).toHaveBeenCalledTimes(sampleCitations.length);
+  });
+
+  it('preserves an existing type prefix regardless of capitalization', () => {
+    const citation = {
+      ...sampleCitations[1],
+      title: sampleCitations[1].title.toLowerCase(),
+    };
+    render(
+      <AssistantMessage
+        message={{ ...sampleMessages[1], citations: [citation] }}
+        onRetry={vi.fn()}
+        onCitationClick={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: citation.title }),
+    ).toHaveTextContent(citation.title);
   });
 });

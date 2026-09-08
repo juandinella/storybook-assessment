@@ -25,7 +25,7 @@ export function Composer({
   return (
     <form
       aria-label="Assistant composer"
-      className="rounded-md border border-border-default bg-bg-surface has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-focus"
+      className="rounded-md border border-border-default bg-bg-surface has-[textarea:focus-visible]:ring-2 has-[textarea:focus-visible]:ring-focus forced-colors:has-[textarea:focus-visible]:outline-2 forced-colors:has-[textarea:focus-visible]:outline-offset-2"
       onSubmit={(event) => {
         event.preventDefault();
         if (!canSubmit) return;

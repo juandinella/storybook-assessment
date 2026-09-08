@@ -35,7 +35,10 @@ export function AssistantMessage({
       )}
     >
       <Text
-        className="mb-1.5 text-xs font-semibold"
+        className={cn(
+          'mb-1.5 text-xs font-semibold',
+          density === 'compact' && 'mb-1',
+        )}
         tone={user ? 'primary' : 'secondary'}
       >
         {user ? 'You' : 'Assistant'}
@@ -54,7 +57,13 @@ export function AssistantMessage({
           </Text>
         )}
       {!user && message.interrupted && (
-        <Text tone="secondary" className="mt-2 text-xs leading-5">
+        <Text
+          tone="secondary"
+          className={cn(
+            'mt-2 text-xs leading-5',
+            density === 'compact' && 'mt-1',
+          )}
+        >
           Response stopped.{' '}
           {message.content
             ? 'This answer is incomplete.'
@@ -62,7 +71,12 @@ export function AssistantMessage({
         </Text>
       )}
       {!user && message.status === 'error' && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div
+          className={cn(
+            'mt-3 flex flex-wrap items-center justify-between gap-2',
+            density === 'compact' && 'mt-2',
+          )}
+        >
           <p className="flex items-center gap-2 text-xs leading-5 font-medium text-danger">
             <AlertCircle size={14} aria-hidden="true" className="shrink-0" />
             Response failed
@@ -79,18 +93,29 @@ export function AssistantMessage({
         </div>
       )}
       {!user && !!message.citations?.length && (
-        <div className="mt-3">
+        <div className={cn('mt-3', density === 'compact' && 'mt-2')}>
           <Text tone="secondary" className="mb-1 text-xs font-semibold">
             Sources ({message.citations.length})
           </Text>
-          <ul aria-label="Sources" className="flex flex-col gap-0.5">
+          <ul
+            aria-label="Sources"
+            className={cn(
+              'flex flex-col gap-0.5',
+              density === 'compact' && 'gap-0',
+            )}
+          >
             {message.citations.map((citation) => {
               const { label, Icon } = sourceTypes[citation.kind];
+              const sourceName = citation.title
+                .toLowerCase()
+                .startsWith(`${label.toLowerCase()}:`)
+                ? citation.title
+                : `${label}: ${citation.title}`;
               return (
                 <li key={citation.id}>
                   <Button
                     variant="ghost"
-                    aria-label={`${label}: ${citation.title}`}
+                    aria-label={sourceName}
                     onClick={() => onCitationClick(citation)}
                     className="h-auto min-h-9 w-full items-start justify-start px-2.5 py-1.5 text-left text-sm leading-5 font-medium whitespace-normal"
                   >

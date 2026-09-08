@@ -37,6 +37,8 @@ export type SuggestionChipsProps = {
   suggestions: readonly string[];
   onSuggestionSelect: (prompt: string) => void;
   disabled?: boolean;
+  /** Adjusts space between suggestions without changing button size. */
+  density?: AssistantDensity;
 };
 
 export type AssistantMessageProps = {

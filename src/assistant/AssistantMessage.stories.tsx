@@ -33,7 +33,7 @@ const meta = {
           {...args}
           onRetry={(id) => setFeedback(`Retry requested: ${id}`)}
           onCitationClick={(citation) =>
-            setFeedback(`Selected ${citation.kind}: ${citation.title}`)
+            setFeedback(`Selected source: ${citation.title}`)
           }
         />
         <p role="status" className="mt-3 text-sm">
