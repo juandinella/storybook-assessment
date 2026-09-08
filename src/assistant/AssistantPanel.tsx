@@ -1,5 +1,7 @@
 import {
   type ComponentProps,
+  type KeyboardEvent,
+  type UIEvent,
   useCallback,
   useEffect,
   useId,
@@ -188,6 +190,57 @@ export function AssistantPanel({
     );
   }, [messages]);
 
+  function handleThreadScroll(event: UIEvent<HTMLDivElement>) {
+    if (!hasMessages || smoothScrolling.current) return;
+    const node = event.currentTarget;
+    const nearBottom =
+      node.scrollHeight - node.scrollTop - node.clientHeight <= 48;
+    updateFollowState(nearBottom);
+  }
+
+  function handleThreadScrollEnd() {
+    if (!smoothScrolling.current) return;
+    smoothScrolling.current = false;
+    const thread = threadRef.current;
+    if (thread) thread.scrollTop = thread.scrollHeight;
+    updateFollowState(true);
+  }
+
+  function handleThreadKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (
+      [
+        'ArrowUp',
+        'ArrowDown',
+        'PageUp',
+        'PageDown',
+        'Home',
+        'End',
+        ' ',
+      ].includes(event.key)
+    )
+      cancelSmoothScroll();
+  }
+
+  function handleSuggestionSelect(prompt: string) {
+    if (busy) return;
+    focusDraft();
+    onSuggestionSelect(prompt);
+  }
+
+  function handleRetry(id: string) {
+    if (busy) return;
+    focusDraft();
+    onRetry(id);
+  }
+
+  function handleScrollToLatest() {
+    const thread = threadRef.current;
+    if (!thread) return;
+    updateFollowState(true);
+    thread.scrollTop = thread.scrollHeight;
+    thread.focus({ preventScroll: true });
+  }
+
   return (
     <section
       ref={panelRef}
@@ -215,37 +268,12 @@ export function AssistantPanel({
         role="region"
         aria-label="Conversation"
         tabIndex={0}
-        onScroll={(event) => {
-          if (!hasMessages || smoothScrolling.current) return;
-          const node = event.currentTarget;
-          const nearBottom =
-            node.scrollHeight - node.scrollTop - node.clientHeight <= 48;
-          updateFollowState(nearBottom);
-        }}
-        onScrollEnd={() => {
-          if (!smoothScrolling.current) return;
-          smoothScrolling.current = false;
-          const thread = threadRef.current;
-          if (thread) thread.scrollTop = thread.scrollHeight;
-          updateFollowState(true);
-        }}
+        onScroll={handleThreadScroll}
+        onScrollEnd={handleThreadScrollEnd}
         onWheel={cancelSmoothScroll}
         onTouchStart={cancelSmoothScroll}
         onPointerDown={cancelSmoothScroll}
-        onKeyDown={(event) => {
-          if (
-            [
-              'ArrowUp',
-              'ArrowDown',
-              'PageUp',
-              'PageDown',
-              'Home',
-              'End',
-              ' ',
-            ].includes(event.key)
-          )
-            cancelSmoothScroll();
-        }}
+        onKeyDown={handleThreadKeyDown}
         className="scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <div
@@ -291,11 +319,7 @@ export function AssistantPanel({
                     suggestions={suggestions}
                     density={density}
                     disabled={busy}
-                    onSuggestionSelect={(prompt) => {
-                      if (busy) return;
-                      focusDraft();
-                      onSuggestionSelect(prompt);
-                    }}
+                    onSuggestionSelect={handleSuggestionSelect}
                   />
                 </>
               )}
@@ -308,11 +332,7 @@ export function AssistantPanel({
                 density={density}
                 retryDisabled={busy}
                 onCitationClick={onCitationClick}
-                onRetry={(id) => {
-                  if (busy) return;
-                  focusDraft();
-                  onRetry(id);
-                }}
+                onRetry={handleRetry}
               />
             ))
           )}
@@ -324,13 +344,7 @@ export function AssistantPanel({
             aria-label="Scroll to latest response"
             title="Scroll to latest response"
             className="absolute -top-12 left-1/2 -translate-x-1/2 rounded-full border border-border-default bg-bg-surface shadow-sm focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface"
-            onClick={() => {
-              const thread = threadRef.current;
-              if (!thread) return;
-              updateFollowState(true);
-              thread.scrollTop = thread.scrollHeight;
-              thread.focus({ preventScroll: true });
-            }}
+            onClick={handleScrollToLatest}
           >
             <ArrowDown size={18} aria-hidden="true" />
           </IconButton>
