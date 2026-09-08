@@ -116,7 +116,7 @@ export function AssistantDemo({
   }
 
   return (
-    <div className="flex h-dvh min-h-110 flex-col items-center justify-center bg-bg-page px-3 py-5 sm:px-6">
+    <div className="flex h-dvh flex-col items-center justify-center bg-bg-page px-3 py-5 sm:px-6">
       <div className="flex min-h-0 w-full max-w-105 flex-1 flex-col justify-center">
         <AssistantPanel
           messages={messages}
