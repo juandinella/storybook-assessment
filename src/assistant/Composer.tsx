@@ -17,6 +17,8 @@ type ComposerProps = {
   textareaRef?: RefObject<HTMLTextAreaElement | null>;
   /** Controlled draft; remains editable while streaming. */
   value: string;
+  /** Hint shown for an empty draft. Defaults to "Ask a question...". */
+  placeholder?: string;
   /** Streaming replaces Send with Stop and blocks submission; idle and error allow sending non-blank drafts. */
   status: AssistantStatus;
   /** Reports the full draft after an edit; the consumer must update value. */
@@ -29,6 +31,7 @@ type ComposerProps = {
 
 export function Composer({
   value,
+  placeholder = 'Ask a question...',
   status,
   onValueChange,
   onSubmit,
@@ -100,7 +103,7 @@ export function Composer({
         value={value}
         rows={2}
         aria-describedby={hintId}
-        placeholder="Ask about this report..."
+        placeholder={placeholder}
         className="scrollbar-thin block min-h-20 resize-none border-0 bg-transparent px-3.5 pt-3.5 pb-2 leading-6 focus-visible:ring-0"
         onChange={(event) => onValueChange(event.currentTarget.value)}
         onCompositionStart={handleCompositionStart}

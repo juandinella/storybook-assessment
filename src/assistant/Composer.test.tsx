@@ -6,6 +6,27 @@ import { sampleSuggestions } from '@/fixtures';
 import { Composer } from './Composer';
 
 describe('Composer', () => {
+  it.each([
+    [undefined, 'Ask a question...'],
+    ['Ask about this report...', 'Ask about this report...'],
+    ['', ''],
+  ])('renders placeholder %j as %j', (placeholder, expected) => {
+    render(
+      <Composer
+        value=""
+        placeholder={placeholder}
+        status="idle"
+        onValueChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onStop={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole('textbox', { name: 'Message to assistant' }),
+    ).toHaveAttribute('placeholder', expected);
+  });
+
   it.each(['idle', 'streaming'] as const)(
     'connects an external ref and restores focus before the %s action callback',
     async (status) => {
