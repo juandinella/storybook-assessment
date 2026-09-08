@@ -1,8 +1,9 @@
-# AI disclosure
+# AI Disclosure
 
-Replace this file. Empty “I used Cursor” is not enough.
+- **Tools:** OpenCode with an OpenAI model, subagents for repository exploration and test generation, and Playwright/Chrome for browser inspection. Skills: `vercel-react-best-practices` for React review, `impeccable` for design context and critique, and `emil-design-eng` for interaction polish. References included a supplied screenshot and an earlier AI-generated draft.
 
-- **Tools:** (Cursor, Claude, Copilot, none, …)
-- **I decided:** (API, layout, states, a11y — what was a human call)
-- **The model generated:** (which files / chunks)
-- **If I had more time:** (what you would change)
+- **I decided:** I organized the work into scoped implementation tasks, visual iterations, and separate code, accessibility, and test reviews, using the README as the contract and DESIGN/PRODUCT as shared agent context. Beyond the brief, I directed hierarchy and density refinements, requested the optional `autoScrollOnSubmit` API, and replaced extra source-selection feedback with Storybook Actions. I challenged proposals, approved focus-recovery and Stop-announcement corrections, and requested test consolidation after the coverage review. Agent findings and verification results informed the next iteration; I retained final approval rather than treating generated output as finished work.
+
+- **The model generated:** Components, types, demo logic, stories, and tests in `src/assistant/`, plus supporting Storybook configuration, styling, and documentation. It also proposed implementation details and specific visual values, and ran automated tests and browser checks to inform revisions. The final test cleanup leaves 34 assistant tests; all 41 project tests and typechecking pass.
+
+- **If I had more time:** In a separate product iteration beyond this assessment, I would explore contextual source previews and a review-before-apply flow for suggested rewrites. Clinicians could inspect the supporting evidence and compare changes before updating the report, keeping them in control of the final content.
