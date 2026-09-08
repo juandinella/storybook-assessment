@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { action } from 'storybook/actions';
 import { clinician, sampleReport } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
 import { AssistantDemo } from './AssistantDemo';
-import type { AssistantPanelProps } from './types';
 
 const meta = {
   title: 'Assistant/Panel',
@@ -24,7 +24,7 @@ const meta = {
         type: 'dynamic',
         transform: (
           _source: string,
-          { args }: { args: AssistantPanelProps },
+          { args }: { args: ComponentProps<typeof AssistantPanel> },
         ) => `import { AssistantPanel } from '@/assistant';
 import { sampleSuggestions } from '@/fixtures';
 

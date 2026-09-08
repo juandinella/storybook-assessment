@@ -1,9 +1,11 @@
+import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { denseThread, sampleReport, sampleSuggestions } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
-import type { AssistantPanelProps } from './types';
+
+type AssistantPanelProps = ComponentProps<typeof AssistantPanel>;
 
 describe('AssistantPanel', () => {
   it.each([

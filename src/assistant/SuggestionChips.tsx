@@ -1,7 +1,17 @@
 import { ArrowUpRight } from 'lucide-react';
 import { Button } from '@/primitives/Button';
 import { cn } from '@/lib/cn';
-import type { SuggestionChipsProps } from './types';
+import type { AssistantDensity } from './types';
+
+type SuggestionChipsProps = {
+  /** Prompts must be unique: each string is also used as its React key. */
+  suggestions: readonly string[];
+  /** Reports the selected prompt unchanged; does not submit a request or edit a draft. */
+  onSuggestionSelect: (prompt: string) => void;
+  disabled?: boolean;
+  /** Defaults to comfortable. Compact reduces spacing between buttons without changing their sizing. */
+  density?: AssistantDensity;
+};
 
 export function SuggestionChips({
   suggestions,

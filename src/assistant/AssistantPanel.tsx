@@ -1,4 +1,5 @@
 import {
+  type ComponentProps,
   useCallback,
   useEffect,
   useId,
@@ -14,7 +15,40 @@ import { cn } from '@/lib/cn';
 import { AssistantMessage } from './AssistantMessage';
 import { Composer } from './Composer';
 import { SuggestionChips } from './SuggestionChips';
-import type { AssistantPanelProps, Message } from './types';
+import type { AssistantDensity, Citation, Message } from './types';
+
+/**
+ * Controlled sidebar. Provide a bounded-height parent for independent thread scrolling.
+ * A streaming status or message blocks Send, Retry, and suggestions while keeping the draft editable.
+ */
+type AssistantPanelProps = ComponentProps<typeof Composer> & {
+  /** Consumer-owned conversation. Replace the array and changed message objects so scrolling and announcements can detect updates. */
+  messages: readonly Message[];
+  /** Unique prompts shown only when messages is empty. */
+  suggestions: readonly string[];
+  /** Requests retry of a failed assistant message by ID; the consumer handles generation and message updates. */
+  onRetry: (messageId: string) => void;
+  /** Requests submission of the selected prompt unchanged; does not edit value or call onSubmit. */
+  onSuggestionSelect: (prompt: string) => void;
+  /** Reports the selected citation object, including during streaming; the consumer handles source inspection or navigation. */
+  onCitationClick: (citation: Citation) => void;
+  /** Report context displayed beneath the panel heading. */
+  reportTitle: string;
+  /** Used in the empty-state greeting; an omitted or empty value produces a generic greeting. */
+  greetingName?: string;
+  /** Defaults to comfortable. Compact reduces conversation spacing and user-bubble padding, not typography, button sizing, header, or composer styles. */
+  density?: AssistantDensity;
+  /** Classes merged onto the panel's outer section. */
+  className?: string;
+  /**
+   * Defaults to false. Resumes following when a new user-message ID appears in
+   * an existing conversation while the reader is no longer following output.
+   * Triggered by messages updates, not by onSubmit. Uses smooth scrolling unless
+   * reduced motion is preferred; pointer, wheel, touch, or scroll-key input in
+   * the conversation cancels the animation.
+   */
+  autoScrollOnSubmit?: boolean;
+};
 
 export function AssistantPanel({
   messages,

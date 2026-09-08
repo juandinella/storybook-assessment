@@ -10,7 +10,7 @@ import {
   useFakeStream,
 } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
-import type { AssistantDensity, AssistantPanelProps, Message } from './types';
+import type { AssistantDensity, Citation, Message } from './types';
 
 export type DemoScenario =
   | 'empty'
@@ -18,13 +18,13 @@ export type DemoScenario =
   | 'error'
   | 'citations'
   | 'dense';
-export type AssistantDemoProps = {
+type AssistantDemoProps = {
   scenario: DemoScenario;
   density?: AssistantDensity;
   reportTitle?: string;
   greetingName?: string;
   autoScrollOnSubmit?: boolean;
-  onCitationClick?: AssistantPanelProps['onCitationClick'];
+  onCitationClick?: (citation: Citation) => void;
 };
 
 function initialMessages(scenario: DemoScenario): Message[] {

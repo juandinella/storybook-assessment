@@ -1,7 +1,7 @@
+import type { ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useArgs, useState } from 'storybook/preview-api';
 import { Composer } from './Composer';
-import type { ComposerProps } from './types';
 
 const meta = {
   title: 'Assistant/Composer',
@@ -18,7 +18,7 @@ const meta = {
         type: 'dynamic',
         transform: (
           _source: string,
-          { args }: { args: ComposerProps },
+          { args }: { args: ComponentProps<typeof Composer> },
         ) => `<Composer
   value={${JSON.stringify(args.value)}}
   status="${args.status}"
@@ -45,7 +45,7 @@ const meta = {
   },
   // The parameter keeps Storybook's dynamic source rendering enabled.
   render: function Example(_args) {
-    const [args, updateArgs] = useArgs<ComposerProps>();
+    const [args, updateArgs] = useArgs<ComponentProps<typeof Composer>>();
     const [feedback, setFeedback] = useState('');
     return (
       <div className="max-w-97">

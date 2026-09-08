@@ -3,10 +3,6 @@ export { AssistantMessage } from './AssistantMessage';
 export { Composer } from './Composer';
 export { SuggestionChips } from './SuggestionChips';
 export type {
-  AssistantPanelProps,
-  AssistantMessageProps,
-  ComposerProps,
-  SuggestionChipsProps,
   AssistantDensity,
   AssistantStatus,
   Citation,

@@ -2,7 +2,20 @@ import { useEffect, useId, useRef } from 'react';
 import { ArrowUp, Square } from 'lucide-react';
 import { IconButton } from '@/primitives/IconButton';
 import { Textarea } from '@/primitives/Textarea';
-import type { ComposerProps } from './types';
+import type { AssistantStatus } from './types';
+
+type ComposerProps = {
+  /** Controlled draft; remains editable while streaming. */
+  value: string;
+  /** Streaming replaces Send with Stop and blocks submission; idle and error allow sending non-blank drafts. */
+  status: AssistantStatus;
+  /** Reports the full draft after an edit; the consumer must update value. */
+  onValueChange: (value: string) => void;
+  /** Requests submission of the current non-blank draft when not streaming; does not clear value. */
+  onSubmit: () => void;
+  /** Requests cancellation; the consumer must stop generation and update the controlled state. */
+  onStop: () => void;
+};
 
 export function Composer({
   value,
