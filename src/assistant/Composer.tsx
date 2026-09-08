@@ -2,6 +2,7 @@ import {
   type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type RefObject,
   useEffect,
   useId,
   useRef,
@@ -12,6 +13,8 @@ import { Textarea } from '@/primitives/Textarea';
 import type { AssistantStatus } from './types';
 
 type ComposerProps = {
+  /** Optional shared ref to the draft field; uses a local ref when omitted. */
+  textareaRef?: RefObject<HTMLTextAreaElement | null>;
   /** Controlled draft; remains editable while streaming. */
   value: string;
   /** Streaming replaces Send with Stop and blocks submission; idle and error allow sending non-blank drafts. */
@@ -30,9 +33,12 @@ export function Composer({
   onValueChange,
   onSubmit,
   onStop,
+  textareaRef,
 }: ComposerProps) {
   const inputId = useId();
   const hintId = useId();
+  const localTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = textareaRef ?? localTextareaRef;
   const composing = useRef(false);
   const compositionEndTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -45,7 +51,7 @@ export function Composer({
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSubmit) return;
-    event.currentTarget.querySelector('textarea')?.focus({ preventScroll: true });
+    inputRef.current?.focus({ preventScroll: true });
     onSubmit();
   }
 
@@ -75,9 +81,7 @@ export function Composer({
   function handleStopClick(event: MouseEvent<HTMLButtonElement>) {
     if (!streaming) return;
     event.preventDefault();
-    event.currentTarget.form
-      ?.querySelector('textarea')
-      ?.focus({ preventScroll: true });
+    inputRef.current?.focus({ preventScroll: true });
     onStop();
   }
 
@@ -91,6 +95,7 @@ export function Composer({
         Message to assistant
       </label>
       <Textarea
+        ref={inputRef}
         id={inputId}
         value={value}
         rows={2}

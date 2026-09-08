@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
@@ -6,6 +6,41 @@ import { sampleSuggestions } from '@/fixtures';
 import { Composer } from './Composer';
 
 describe('Composer', () => {
+  it.each(['idle', 'streaming'] as const)(
+    'connects an external ref and restores focus before the %s action callback',
+    async (status) => {
+      const user = userEvent.setup();
+      const textareaRef = createRef<HTMLTextAreaElement>();
+      const onAction = vi.fn(() => {
+        expect(textareaRef.current).toHaveFocus();
+      });
+      const { unmount } = render(
+        <Composer
+          textareaRef={textareaRef}
+          value={sampleSuggestions[0].text}
+          status={status}
+          onValueChange={vi.fn()}
+          onSubmit={onAction}
+          onStop={onAction}
+        />,
+      );
+      const input = screen.getByRole('textbox', { name: 'Message to assistant' });
+      expect(textareaRef.current).toBe(input);
+      const focus = vi.spyOn(input, 'focus');
+
+      await user.click(
+        screen.getByRole('button', {
+          name: status === 'streaming' ? 'Stop response' : 'Send message',
+        }),
+      );
+
+      expect(focus).toHaveBeenCalledExactlyOnceWith({ preventScroll: true });
+      expect(onAction).toHaveBeenCalledExactlyOnceWith();
+      unmount();
+      expect(textareaRef.current).toBeNull();
+    },
+  );
+
   it.each(['click', 'Enter'] as const)(
     'submits once via %s',
     async (method) => {

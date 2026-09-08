@@ -1,7 +1,7 @@
-import type { TextareaHTMLAttributes } from 'react';
+import type { ComponentPropsWithRef } from 'react';
 import { cn } from '@/lib/cn';
 
-export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
+export type TextareaProps = ComponentPropsWithRef<'textarea'> & {
   error?: boolean;
 };
 

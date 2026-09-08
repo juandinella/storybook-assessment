@@ -20,7 +20,7 @@ import type { AssistantDensity, Citation, Message, Suggestion } from './types';
  * Controlled sidebar. Provide a bounded-height parent for independent thread scrolling.
  * A streaming status or message blocks Send, Retry, and suggestions while keeping the draft editable.
  */
-type AssistantPanelProps = ComponentProps<typeof Composer> & {
+type AssistantPanelProps = Omit<ComponentProps<typeof Composer>, 'textareaRef'> & {
   /** Consumer-owned conversation. Replace the array and changed message objects so scrolling and announcements can detect updates. */
   messages: readonly Message[];
   /** Prompts with stable, unique IDs, shown only when messages is empty. */
@@ -68,6 +68,7 @@ export function AssistantPanel({
 }: AssistantPanelProps) {
   const headingId = useId();
   const panelRef = useRef<HTMLElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previous = useRef(new Map<string, Message>());
   const [announcement, setAnnouncement] = useState('');
   const {
@@ -86,7 +87,7 @@ export function AssistantPanel({
     messages.some((message) => message.status === 'streaming');
 
   function focusDraft() {
-    panelRef.current?.querySelector('textarea')?.focus({ preventScroll: true });
+    textareaRef.current?.focus({ preventScroll: true });
   }
 
   useEffect(() => {
@@ -241,6 +242,7 @@ export function AssistantPanel({
           </IconButton>
         )}
         <Composer
+          textareaRef={textareaRef}
           value={value}
           status={busy ? 'streaming' : status}
           onValueChange={onValueChange}
