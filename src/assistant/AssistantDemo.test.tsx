@@ -11,12 +11,14 @@ import { AssistantDemo, type DemoScenario } from './AssistantDemo';
 
 function renderDemo(scenario: DemoScenario) {
   const user = userEvent.setup();
-  render(<AssistantDemo scenario={scenario} />);
+  const onCitationClick = vi.fn();
+  render(<AssistantDemo scenario={scenario} onCitationClick={onCitationClick} />);
   const panel = within(
     screen.getByRole('region', { name: 'Report assistant' }),
   );
   return {
     user,
+    onCitationClick,
     input: panel.getByRole('textbox', { name: 'Message to assistant' }),
     thread: within(panel.getByRole('region', { name: 'Conversation' })),
     announcement: panel.getByRole('status'),
@@ -32,13 +34,8 @@ afterEach(() => {
 });
 
 describe('AssistantDemo', () => {
-  it('updates the mounted source confirmation without moving focus from the selected source', async () => {
-    const { user, input } = renderDemo('citations');
-    const confirmation = screen.getByRole('status', {
-      name: 'Source selection',
-    });
-    expect(confirmation).toBeEmptyDOMElement();
-    expect(confirmation).not.toHaveAttribute('tabindex');
+  it('forwards source selections without extra feedback, focus changes, or draft changes', async () => {
+    const { user, input, onCitationClick } = renderDemo('citations');
     await user.type(input, sampleSuggestions[0]);
 
     for (const citation of sampleCitations) {
@@ -48,16 +45,14 @@ describe('AssistantDemo', () => {
       source.focus();
       await user.keyboard('{Enter}');
 
-      expect(screen.getByRole('status', { name: 'Source selection' })).toBe(
-        confirmation,
-      );
-      expect(confirmation).toHaveTextContent(
-        `Selected source: ${citation.title}`,
-      );
-      expect(confirmation).toHaveAttribute('tabindex', '0');
+      expect(onCitationClick).toHaveBeenLastCalledWith(citation);
+      expect(
+        screen.queryByRole('status', { name: 'Source selection' }),
+      ).not.toBeInTheDocument();
       expect(source).toHaveFocus();
       expect(input).toHaveValue(sampleSuggestions[0]);
     }
+    expect(onCitationClick).toHaveBeenCalledTimes(sampleCitations.length);
   });
 
   it('sends and clears the draft, allows editing during streaming, and retains the next draft on completion', async () => {

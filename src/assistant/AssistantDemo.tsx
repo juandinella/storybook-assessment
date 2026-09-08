@@ -10,7 +10,7 @@ import {
   useFakeStream,
 } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
-import type { AssistantDensity, Citation, Message } from './types';
+import type { AssistantDensity, AssistantPanelProps, Message } from './types';
 
 export type DemoScenario =
   | 'empty'
@@ -24,6 +24,7 @@ export type AssistantDemoProps = {
   reportTitle?: string;
   greetingName?: string;
   autoScrollOnSubmit?: boolean;
+  onCitationClick?: AssistantPanelProps['onCitationClick'];
 };
 
 function initialMessages(scenario: DemoScenario): Message[] {
@@ -59,13 +60,13 @@ export function AssistantDemo({
   reportTitle = sampleReport.title,
   greetingName = clinician.firstName,
   autoScrollOnSubmit = false,
+  onCitationClick = () => {},
 }: AssistantDemoProps) {
   const [history, setHistory] = useState(() => initialMessages(scenario));
   const [value, setValue] = useState('');
   const [activeId, setActiveId] = useState<string | null>(
     scenario === 'streaming' ? 'demo-stream' : null,
   );
-  const [selectedSource, setSelectedSource] = useState<Citation | null>(null);
   const nextId = useRef(0);
   const locked = useRef(scenario === 'streaming');
   const stream = useFakeStream({
@@ -116,7 +117,7 @@ export function AssistantDemo({
 
   return (
     <div className="flex h-dvh min-h-110 flex-col items-center justify-center bg-bg-page px-3 py-5 sm:px-6">
-      <div className="flex min-h-0 w-full max-w-105 flex-1 flex-col justify-center gap-3">
+      <div className="flex min-h-0 w-full max-w-105 flex-1 flex-col justify-center">
         <AssistantPanel
           messages={messages}
           value={value}
@@ -182,18 +183,8 @@ export function AssistantDemo({
             setActiveId(id);
             start();
           }}
-          onCitationClick={setSelectedSource}
+          onCitationClick={onCitationClick}
         />
-        <div
-          role="status"
-          aria-label="Source selection"
-          aria-live="polite"
-          aria-atomic="true"
-          tabIndex={selectedSource ? 0 : undefined}
-          className="scrollbar-thin h-10 shrink-0 overflow-y-auto text-center text-xs leading-5 text-text-secondary wrap-anywhere focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        >
-          {selectedSource && `Selected source: ${selectedSource.title}`}
-        </div>
       </div>
     </div>
   );

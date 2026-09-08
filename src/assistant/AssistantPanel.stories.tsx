@@ -1,25 +1,67 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { action } from 'storybook/actions';
 import { clinician, sampleReport } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
 import { AssistantDemo } from './AssistantDemo';
+import type { AssistantPanelProps } from './types';
 
 const meta = {
   title: 'Assistant/Panel',
-  component: AssistantDemo,
-  subcomponents: { AssistantPanel },
+  component: AssistantPanel,
   tags: ['autodocs'],
   parameters: {
     layout: 'fullscreen',
+    demoScenario: 'empty',
     docs: {
       description: {
         component:
-          'A controlled report-side assistant. The example host owns messages, draft, retries and the supplied fake stream. Sources report their selection; this assessment does not include a document viewer. Use the theme toolbar to inspect both themes.',
+          'AssistantPanel combines a report header, scrollable conversation, suggestions, and composer in a controlled sidebar. The examples manage conversation state and simulated streaming to demonstrate the interactions.',
       },
-      story: { inline: false, height: 800 },
+      // Inline rendering keeps the docs controls connected to the example.
+      story: { inline: true, height: '800px' },
+      source: {
+        language: 'tsx',
+        type: 'dynamic',
+        transform: (
+          _source: string,
+          { args }: { args: AssistantPanelProps },
+        ) => `import { AssistantPanel } from '@/assistant';
+import { sampleSuggestions } from '@/fixtures';
+
+// Render inside a bounded-height container.
+// The consumer supplies messages, status, value, and the callbacks below.
+<AssistantPanel
+  messages={messages}
+  status={status}
+  value={value}
+  onValueChange={setValue}
+  onSubmit={() => submitPrompt(value)}
+  onStop={stopResponse}
+  onRetry={retryResponse}
+  onSuggestionSelect={submitPrompt}
+  onCitationClick={handleCitationClick}
+  suggestions={sampleSuggestions}
+  reportTitle={${JSON.stringify(args.reportTitle)}}
+  greetingName={${JSON.stringify(args.greetingName)}}
+  density={${JSON.stringify(args.density)}}
+  autoScrollOnSubmit={${args.autoScrollOnSubmit}}
+  className="max-h-190 flex-1 rounded-md shadow-sm"
+/>`,
+      },
     },
   },
   argTypes: {
-    scenario: { control: false, table: { disable: true } },
+    messages: { control: false, table: { type: { summary: 'readonly Message[]' } } },
+    status: { control: false },
+    value: { control: false },
+    suggestions: { control: false, table: { type: { summary: 'readonly string[]' } } },
+    className: { control: false },
+    onValueChange: { control: false },
+    onSubmit: { control: false },
+    onStop: { control: false },
+    onRetry: { control: false },
+    onSuggestionSelect: { control: false },
+    onCitationClick: { control: false },
     density: {
       control: 'inline-radio',
       options: ['comfortable', 'compact'],
@@ -28,7 +70,7 @@ const meta = {
     },
     reportTitle: {
       control: 'text',
-      description: 'Report context displayed in the fixed header.',
+      description: 'Report context displayed beneath the panel heading.',
     },
     greetingName: {
       control: 'text',
@@ -37,20 +79,25 @@ const meta = {
     autoScrollOnSubmit: {
       control: 'boolean',
       description:
-        'When enabled, a new user turn smoothly returns to the bottom and resumes following output. Defaults to false; respects reduced motion and can be interrupted by scrolling.',
+        'Defaults to false. When messages gains a new user-message ID in an existing conversation, resumes following if the reader is no longer following output. Triggered by messages updates, not by onSubmit. Scrolls smoothly unless reduced motion is preferred; pointer, wheel, touch, or scroll-key input in the conversation cancels the animation.',
     },
   },
   args: {
-    scenario: 'empty',
     density: 'comfortable',
     reportTitle: sampleReport.title,
     greetingName: clinician.firstName,
     autoScrollOnSubmit: false,
+    onCitationClick: action('onCitationClick'),
   },
-  render: (args) => <AssistantDemo key={args.scenario} {...args} />,
-} satisfies Meta<typeof AssistantDemo>;
+  render: (args, { parameters, viewMode }) => (
+    // The inline docs canvas replaces the demo's standalone viewport height.
+    <div className={viewMode === 'docs' ? '[&>div]:h-200' : undefined}>
+      <AssistantDemo key={parameters.demoScenario} {...args} scenario={parameters.demoScenario} />
+    </div>
+  ),
+} satisfies Meta<typeof AssistantPanel>;
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<typeof AssistantPanel>;
 
 export const Empty: Story = {
   parameters: {
@@ -63,7 +110,9 @@ export const Empty: Story = {
   },
 };
 export const Streaming: Story = {
+  argTypes: { greetingName: { control: false } },
   parameters: {
+    demoScenario: 'streaming',
     docs: {
       description: {
         story:
@@ -71,10 +120,11 @@ export const Streaming: Story = {
       },
     },
   },
-  args: { scenario: 'streaming' },
 };
 export const Error: Story = {
+  argTypes: { greetingName: { control: false } },
   parameters: {
+    demoScenario: 'error',
     docs: {
       description: {
         story:
@@ -82,23 +132,25 @@ export const Error: Story = {
       },
     },
   },
-  args: { scenario: 'error' },
 };
 export const WithCitations: Story = {
   name: 'WithCitations',
+  argTypes: { greetingName: { control: false } },
   parameters: {
+    demoScenario: 'citations',
     docs: {
       description: {
         story:
-          'Use for a sourced answer. Document, section, and note buttons identify the selected source in a reserved two-line area below the panel, without navigation or moving the composer. Longer confirmations can be scrolled with keyboard focus. Change density to inspect the source list in context.',
+          'Use for a sourced answer. Click a document, section, or note to inspect its citation object in Storybook Actions; the example does not open a source viewer. Change density to inspect the source list in context.',
       },
     },
   },
-  args: { scenario: 'citations' },
 };
 export const DenseThread: Story = {
   name: 'DenseThread',
+  argTypes: { greetingName: { control: false } },
   parameters: {
+    demoScenario: 'dense',
     docs: {
       description: {
         story:
@@ -106,5 +158,19 @@ export const DenseThread: Story = {
       },
     },
   },
-  args: { scenario: 'dense' },
+};
+
+export const AutoScrollOnSubmit: Story = {
+  ...DenseThread,
+  name: 'AutoScrollOnSubmit',
+  args: { autoScrollOnSubmit: true },
+  parameters: {
+    ...DenseThread.parameters,
+    docs: {
+      description: {
+        story:
+          'Use when sending a new question should return to the latest turn. Scroll up in the conversation, then type a message and press Enter: the thread smoothly returns to the bottom and follows the response. Turn off autoScrollOnSubmit to compare with preserving your reading position. Reduced motion makes the return immediate.',
+      },
+    },
+  },
 };
