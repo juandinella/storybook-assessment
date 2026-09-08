@@ -29,6 +29,8 @@ describe('AssistantMessage', () => {
         sampleMessages[1].content,
       ),
     ).toBeVisible();
+    expect(screen.queryByText('You', { exact: true })).not.toBeInTheDocument();
+    expect(screen.getByText('Assistant', { exact: true })).toBeVisible();
   });
 
   it('retries the failed message ID and disables retry during another response', async () => {

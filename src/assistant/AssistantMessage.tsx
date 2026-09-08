@@ -46,15 +46,17 @@ export function AssistantMessage({
         user && density === 'compact' && 'px-3 py-2',
       )}
     >
-      <Text
-        className={cn(
-          'mb-1.5 text-xs font-semibold',
-          density === 'compact' && 'mb-1',
-        )}
-        tone={user ? 'primary' : 'secondary'}
-      >
-        {user ? 'You' : 'Assistant'}
-      </Text>
+      {!user && (
+        <Text
+          className={cn(
+            'mb-1.5 text-xs font-semibold',
+            density === 'compact' && 'mb-1',
+          )}
+          tone="secondary"
+        >
+          Assistant
+        </Text>
+      )}
       {message.content && (
         <Text className="whitespace-pre-wrap text-sm leading-6">
           {message.content}
