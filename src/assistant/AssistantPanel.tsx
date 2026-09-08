@@ -88,8 +88,9 @@ export function AssistantPanel({
           message.role === 'user' && !previous.current.has(message.id),
       );
     if (autoScrollOnSubmit && newUserTurn && !following.current) {
-      const reducedMotion = thread.ownerDocument.defaultView
-        ?.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reducedMotion = thread.ownerDocument.defaultView?.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
       updateFollowState(true);
       if (
         !reducedMotion &&
@@ -200,7 +201,13 @@ export function AssistantPanel({
         onKeyDown={(event) => {
           if (
             [
-              'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ',
+              'ArrowUp',
+              'ArrowDown',
+              'PageUp',
+              'PageDown',
+              'Home',
+              'End',
+              ' ',
             ].includes(event.key)
           )
             cancelSmoothScroll();

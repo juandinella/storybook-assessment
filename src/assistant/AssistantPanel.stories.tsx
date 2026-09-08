@@ -51,10 +51,16 @@ import { sampleSuggestions } from '@/fixtures';
     },
   },
   argTypes: {
-    messages: { control: false, table: { type: { summary: 'readonly Message[]' } } },
+    messages: {
+      control: false,
+      table: { type: { summary: 'readonly Message[]' } },
+    },
     status: { control: false },
     value: { control: false },
-    suggestions: { control: false, table: { type: { summary: 'readonly string[]' } } },
+    suggestions: {
+      control: false,
+      table: { type: { summary: 'readonly string[]' } },
+    },
     className: { control: false },
     onValueChange: { control: false },
     onSubmit: { control: false },
@@ -92,7 +98,11 @@ import { sampleSuggestions } from '@/fixtures';
   render: (args, { parameters, viewMode }) => (
     // The inline docs canvas replaces the demo's standalone viewport height.
     <div className={viewMode === 'docs' ? '[&>div]:h-200' : undefined}>
-      <AssistantDemo key={parameters.demoScenario} {...args} scenario={parameters.demoScenario} />
+      <AssistantDemo
+        key={parameters.demoScenario}
+        {...args}
+        scenario={parameters.demoScenario}
+      />
     </div>
   ),
 } satisfies Meta<typeof AssistantPanel>;

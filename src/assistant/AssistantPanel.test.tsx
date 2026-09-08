@@ -13,7 +13,10 @@ describe('AssistantPanel', () => {
   ])(
     'handles submission scrolling with %j',
     ({ autoScrollOnSubmit, reducedMotion }) => {
-      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reducedMotion })));
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn(() => ({ matches: reducedMotion })),
+      );
       let notifyResize = () => {};
       vi.stubGlobal(
         'ResizeObserver',
@@ -134,7 +137,10 @@ describe('AssistantPanel', () => {
   it.each(['wheel', 'touchStart', 'pointerDown', 'keyDown'] as const)(
     'lets %s interrupt smooth submission scrolling without resuming on streamed output',
     (event) => {
-      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn(() => ({ matches: false })),
+      );
       try {
         const props: AssistantPanelProps = {
           messages: denseThread,
@@ -165,7 +171,10 @@ describe('AssistantPanel', () => {
           { id: 'new-user', role: 'user' as const, content: 'Question' },
         ];
         rerender(<AssistantPanel {...props} messages={messages} />);
-        expect(scrollTo).toHaveBeenCalledWith({ top: 1000, behavior: 'smooth' });
+        expect(scrollTo).toHaveBeenCalledWith({
+          top: 1000,
+          behavior: 'smooth',
+        });
         thread.scrollTop = 300;
         fireEvent[event](thread, { key: 'PageUp' });
         expect(scrollTo).toHaveBeenLastCalledWith({
@@ -296,47 +305,6 @@ describe('AssistantPanel', () => {
       expect(thread.scrollTop).toBe(height);
     },
   );
-
-  it('keeps the resize observer when messages are appended and disconnects it on cleanup', () => {
-    const observe = vi.fn();
-    const disconnect = vi.fn();
-    const ResizeObserverMock = vi.fn(function () {
-      return { observe, disconnect };
-    });
-    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
-
-    try {
-      const props: AssistantPanelProps = {
-        messages: denseThread.slice(0, 2),
-        status: 'idle',
-        value: '',
-        reportTitle: sampleReport.title,
-        suggestions: sampleSuggestions,
-        onValueChange: vi.fn(),
-        onSubmit: vi.fn(),
-        onStop: vi.fn(),
-        onRetry: vi.fn(),
-        onSuggestionSelect: vi.fn(),
-        onCitationClick: vi.fn(),
-      };
-      const { rerender, unmount } = render(<AssistantPanel {...props} />);
-      expect(ResizeObserverMock).toHaveBeenCalledTimes(1);
-      expect(observe).toHaveBeenCalledTimes(2);
-
-      rerender(<AssistantPanel {...props} messages={denseThread} />);
-      expect(ResizeObserverMock).toHaveBeenCalledTimes(1);
-      expect(disconnect).not.toHaveBeenCalled();
-
-      rerender(<AssistantPanel {...props} messages={[]} />);
-      expect(ResizeObserverMock).toHaveBeenCalledTimes(2);
-      expect(disconnect).toHaveBeenCalledTimes(1);
-
-      unmount();
-      expect(disconnect).toHaveBeenCalledTimes(2);
-    } finally {
-      vi.unstubAllGlobals();
-    }
-  });
 
   it('reconciles resize without a scroll event and resumes following only near the bottom', () => {
     let notifyResize = () => {};

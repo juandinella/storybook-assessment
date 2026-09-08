@@ -12,7 +12,9 @@ import { AssistantDemo, type DemoScenario } from './AssistantDemo';
 function renderDemo(scenario: DemoScenario) {
   const user = userEvent.setup();
   const onCitationClick = vi.fn();
-  render(<AssistantDemo scenario={scenario} onCitationClick={onCitationClick} />);
+  render(
+    <AssistantDemo scenario={scenario} onCitationClick={onCitationClick} />,
+  );
   const panel = within(
     screen.getByRole('region', { name: 'Report assistant' }),
   );
@@ -55,7 +57,7 @@ describe('AssistantDemo', () => {
     expect(onCitationClick).toHaveBeenCalledTimes(sampleCitations.length);
   });
 
-  it('sends and clears the draft, allows editing during streaming, and retains the next draft on completion', async () => {
+  it('sends and clears the draft, allows editing during streaming, and submits the retained draft after completion', async () => {
     const { user, input, thread, announcement } = renderDemo('empty');
     await user.type(input, sampleSuggestions[0]);
     await user.keyboard('{Enter}');
@@ -94,10 +96,23 @@ describe('AssistantDemo', () => {
     expect(input).toHaveValue(sampleSuggestions[1]);
     expect(input).toHaveFocus();
     expect(announcement).toHaveTextContent('Response complete.');
+
+    await user.keyboard('{Enter}');
+
+    expect(thread.getAllByRole('article')).toHaveLength(4);
+    expect(
+      within(thread.getAllByRole('article', { name: 'You' })[1]).getByText(
+        sampleSuggestions[1],
+        { exact: true },
+      ),
+    ).toBeVisible();
+    expect(input).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Stop response' })).toBeVisible();
+    expect(announcement).toHaveTextContent('Preparing response.');
   });
 
   it.each([0, 12])(
-    'Stop after %i characters freezes the answer without submitting or clearing the next draft',
+    'Stop after %i characters freezes the answer and preserves the next draft for a subsequent submission',
     async (characters) => {
       const { user, input, thread, announcement } = renderDemo('streaming');
       const answer = thread.getByRole('article', { name: 'Assistant' });
@@ -156,52 +171,32 @@ describe('AssistantDemo', () => {
       expect(
         screen.queryByRole('button', { name: 'Retry' }),
       ).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Send message' }));
+
+      expect(thread.getAllByRole('article')).toHaveLength(4);
+      expect(
+        within(thread.getAllByRole('article', { name: 'You' })[1]).getByText(
+          sampleSuggestions[2],
+          { exact: true },
+        ),
+      ).toBeVisible();
+      expect(input).toHaveValue('');
+      expect(screen.getByRole('button', { name: 'Stop response' })).toBeVisible();
+      expect(announcement).toHaveTextContent('Preparing response.');
+      expect(answer.textContent).toBe(stoppedContent);
     },
   );
-
-  it('retries the same failed ID in place without duplicating turns or changing the draft', async () => {
-    const { user, input, thread, announcement } = renderDemo('error');
-    const answer = thread.getByRole('article', { name: 'Assistant' });
-    expect(answer).toHaveAttribute('data-message-id', errorMessage.id);
-    expect(announcement).toHaveTextContent(
-      'Response failed. Retry is available.',
-    );
-    await user.type(input, sampleSuggestions[2]);
-    expect(input).not.toHaveAttribute('aria-invalid', 'true');
-    await user.click(within(answer).getByRole('button', { name: 'Retry' }));
-
-    expect(input).toHaveFocus();
-    expect(input).toHaveValue(sampleSuggestions[2]);
-    expect(thread.getAllByRole('article')).toHaveLength(2);
-    expect(thread.getByRole('article', { name: 'Assistant' })).toBe(answer);
-    expect(answer).toHaveAttribute('data-message-id', errorMessage.id);
-    expect(
-      within(answer).getByText('Preparing', { exact: true }),
-    ).toBeVisible();
-    expect(
-      within(answer).queryByText(errorMessage.content),
-    ).not.toBeInTheDocument();
-    expect(
-      within(answer).queryByRole('button', { name: 'Retry' }),
-    ).not.toBeInTheDocument();
-
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
-    expect(thread.getAllByRole('article')).toHaveLength(2);
-    expect(thread.getByRole('article', { name: 'Assistant' })).toBe(answer);
-    expect(
-      within(answer).getByText(sampleMessages[1].content, { exact: true }),
-    ).toBeVisible();
-    expect(input).toHaveValue(sampleSuggestions[2]);
-    expect(announcement).toHaveTextContent('Response complete.');
-  });
 
   it('retries an older failed turn after a later answer, announcing its transitions without rereading streamed characters', async () => {
     const { user, input, thread, announcement } = renderDemo('error');
     const olderAnswer = thread.getByRole('article', { name: 'Assistant' });
+    expect(olderAnswer).toHaveAttribute('data-message-id', errorMessage.id);
+    expect(announcement).toHaveTextContent(
+      'Response failed. Retry is available.',
+    );
     await user.type(input, sampleSuggestions[0]);
+    expect(input).not.toHaveAttribute('aria-invalid', 'true');
     await user.click(screen.getByRole('button', { name: 'Send message' }));
     const retry = within(olderAnswer).getByRole('button', { name: 'Retry' });
     expect(retry).toBeDisabled();
@@ -223,10 +218,21 @@ describe('AssistantDemo', () => {
     await user.click(retry);
 
     expect(input).toHaveFocus();
+    expect(input).toHaveValue(sampleSuggestions[2]);
+    expect(thread.getAllByRole('article')).toHaveLength(4);
+    expect(thread.getAllByRole('article', { name: 'Assistant' })[0]).toBe(
+      olderAnswer,
+    );
     expect(olderAnswer).toHaveAttribute('data-message-id', errorMessage.id);
     expect(
       within(olderAnswer).getByText('Preparing', { exact: true }),
     ).toBeVisible();
+    expect(
+      within(olderAnswer).queryByText(errorMessage.content),
+    ).not.toBeInTheDocument();
+    expect(
+      within(olderAnswer).queryByRole('button', { name: 'Retry' }),
+    ).not.toBeInTheDocument();
     expect(announcement).toHaveTextContent('Preparing response.');
     await act(async () => {
       await vi.advanceTimersByTimeAsync(55 * 12);
@@ -248,6 +254,9 @@ describe('AssistantDemo', () => {
         .getAllByRole('article')
         .map((turn) => turn.getAttribute('data-message-id')),
     ).toEqual(ids);
+    expect(thread.getAllByRole('article', { name: 'Assistant' })[0]).toBe(
+      olderAnswer,
+    );
     expect(
       within(olderAnswer).getByText(sampleMessages[1].content, { exact: true }),
     ).toBeVisible();

@@ -48,9 +48,14 @@ describe('AssistantMessage', () => {
   it('names each source by kind and title and returns the selected citation', async () => {
     const user = userEvent.setup();
     const onCitationClick = vi.fn();
+    const citations = [
+      sampleCitations[0],
+      { ...sampleCitations[1], title: sampleCitations[1].title.toLowerCase() },
+      sampleCitations[2],
+    ];
     render(
       <AssistantMessage
-        message={{ ...sampleMessages[1], citations: sampleCitations }}
+        message={{ ...sampleMessages[1], citations }}
         onRetry={vi.fn()}
         onCitationClick={onCitationClick}
       />,
@@ -58,34 +63,16 @@ describe('AssistantMessage', () => {
 
     const sources = within(screen.getByRole('list', { name: 'Sources' }));
     const sourceNames = [
-      `Document: ${sampleCitations[0].title}`,
-      sampleCitations[1].title,
-      `Note: ${sampleCitations[2].title}`,
+      `Document: ${citations[0].title}`,
+      citations[1].title,
+      `Note: ${citations[2].title}`,
     ];
-    for (const [index, citation] of sampleCitations.entries()) {
-      await user.click(
-        sources.getByRole('button', { name: sourceNames[index] }),
-      );
+    for (const [index, citation] of citations.entries()) {
+      const source = sources.getByRole('button', { name: sourceNames[index] });
+      expect(source).toHaveTextContent(citation.title);
+      await user.click(source);
       expect(onCitationClick).toHaveBeenNthCalledWith(index + 1, citation);
     }
-    expect(onCitationClick).toHaveBeenCalledTimes(sampleCitations.length);
-  });
-
-  it('preserves an existing type prefix regardless of capitalization', () => {
-    const citation = {
-      ...sampleCitations[1],
-      title: sampleCitations[1].title.toLowerCase(),
-    };
-    render(
-      <AssistantMessage
-        message={{ ...sampleMessages[1], citations: [citation] }}
-        onRetry={vi.fn()}
-        onCitationClick={vi.fn()}
-      />,
-    );
-
-    expect(
-      screen.getByRole('button', { name: citation.title }),
-    ).toHaveTextContent(citation.title);
+    expect(onCitationClick).toHaveBeenCalledTimes(citations.length);
   });
 });

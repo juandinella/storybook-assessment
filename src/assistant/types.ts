@@ -7,13 +7,11 @@ export type Citation = {
 };
 
 export type Message = {
-  /** Keep IDs stable and unique within the conversation for rendering, retries, and change detection. */
   id: string;
   role: 'user' | 'assistant';
   content: string;
   citations?: Citation[];
   status?: 'done' | 'streaming' | 'error';
-  /** Shows stopped-response feedback for assistant turns; does not cancel generation or override status. */
   interrupted?: boolean;
 };
 
