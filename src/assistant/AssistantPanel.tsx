@@ -31,12 +31,14 @@ export function AssistantPanel({
   greetingName,
   density = 'comfortable',
   className,
+  autoScrollOnSubmit = false,
 }: AssistantPanelProps) {
   const headingId = useId();
   const panelRef = useRef<HTMLElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const following = useRef(true);
+  const smoothScrolling = useRef(false);
   const previous = useRef(new Map<string, Message>());
   const [announcement, setAnnouncement] = useState('');
   const [showLatest, setShowLatest] = useState(false);
@@ -62,22 +64,53 @@ export function AssistantPanel({
     setShowLatest(!nearBottom);
   }, []);
 
+  function cancelSmoothScroll() {
+    const thread = threadRef.current;
+    if (!smoothScrolling.current || !thread) return;
+    smoothScrolling.current = false;
+    thread.scrollTo({ top: thread.scrollTop, behavior: 'instant' });
+    updateFollowState(false);
+  }
+
   useLayoutEffect(() => {
     if (!hasMessages) {
+      smoothScrolling.current = false;
       // Recover focus before removing the arrow, without painting it over the empty state.
       updateFollowState(true);
       return;
     }
     const thread = threadRef.current;
-    if (thread && following.current) thread.scrollTop = thread.scrollHeight;
-  }, [messages, density, hasMessages, updateFollowState]);
+    if (!thread) return;
+    const newUserTurn =
+      previous.current.size > 0 &&
+      messages.some(
+        (message) =>
+          message.role === 'user' && !previous.current.has(message.id),
+      );
+    if (autoScrollOnSubmit && newUserTurn && !following.current) {
+      const reducedMotion = thread.ownerDocument.defaultView
+        ?.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      updateFollowState(true);
+      if (
+        !reducedMotion &&
+        thread.scrollHeight - thread.clientHeight - thread.scrollTop > 1
+      ) {
+        smoothScrolling.current = true;
+        thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
+        return;
+      }
+    }
+    // Streaming and resize must not interrupt the user-initiated smooth scroll.
+    if (following.current && !smoothScrolling.current)
+      thread.scrollTop = thread.scrollHeight;
+  }, [messages, density, hasMessages, autoScrollOnSubmit, updateFollowState]);
 
   useEffect(() => {
     const thread = threadRef.current;
     const content = contentRef.current;
     if (!thread || !content || typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(() => {
-      if (!hasMessages) return;
+      if (!hasMessages || smoothScrolling.current) return;
       const nearBottom =
         thread.scrollHeight - thread.scrollTop - thread.clientHeight <= 48;
       const shouldFollow = following.current || nearBottom;
@@ -148,11 +181,29 @@ export function AssistantPanel({
         aria-label="Conversation"
         tabIndex={0}
         onScroll={(event) => {
-          if (!hasMessages) return;
+          if (!hasMessages || smoothScrolling.current) return;
           const node = event.currentTarget;
           const nearBottom =
             node.scrollHeight - node.scrollTop - node.clientHeight <= 48;
           updateFollowState(nearBottom);
+        }}
+        onScrollEnd={() => {
+          if (!smoothScrolling.current) return;
+          smoothScrolling.current = false;
+          const thread = threadRef.current;
+          if (thread) thread.scrollTop = thread.scrollHeight;
+          updateFollowState(true);
+        }}
+        onWheel={cancelSmoothScroll}
+        onTouchStart={cancelSmoothScroll}
+        onPointerDown={cancelSmoothScroll}
+        onKeyDown={(event) => {
+          if (
+            [
+              'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ',
+            ].includes(event.key)
+          )
+            cancelSmoothScroll();
         }}
         className="scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
@@ -161,13 +212,15 @@ export function AssistantPanel({
           className={cn(
             'flex flex-col gap-7 py-6',
             density === 'compact' && 'gap-4 py-3',
+            !hasMessages && 'min-h-full justify-center py-8',
+            !hasMessages && density === 'compact' && 'py-5',
           )}
         >
           {messages.length === 0 ? (
             <div>
               <Heading
                 as="h3"
-                className="text-xl leading-7 font-semibold tracking-tight text-text-primary normal-case wrap-anywhere"
+                className="text-center text-2xl leading-8 font-semibold tracking-tight text-balance text-text-primary normal-case wrap-anywhere"
               >
                 {greetingName
                   ? `How can I help, ${greetingName}?`
@@ -176,19 +229,19 @@ export function AssistantPanel({
               <Text
                 tone="secondary"
                 className={cn(
-                  'mt-2 text-sm leading-6',
-                  density === 'compact' && 'mt-1',
+                  'mx-auto mt-3 max-w-72 text-center text-sm leading-6 text-balance',
+                  density === 'compact' && 'mt-2',
                 )}
               >
-                Ask about a finding or refine a section of this report.
+                Ask about a finding or refine your report.
               </Text>
               {suggestions.length > 0 && (
                 <>
                   <Text
                     tone="secondary"
                     className={cn(
-                      'mt-5 mb-2 text-xs leading-5 font-semibold',
-                      density === 'compact' && 'mt-3',
+                      'mt-8 mb-2 text-xs leading-5 font-semibold',
+                      density === 'compact' && 'mt-5',
                     )}
                   >
                     Suggested questions

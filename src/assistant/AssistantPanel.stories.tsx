@@ -34,12 +34,18 @@ const meta = {
       control: 'text',
       description: 'First name used only in the empty-state welcome.',
     },
+    autoScrollOnSubmit: {
+      control: 'boolean',
+      description:
+        'When enabled, a new user turn smoothly returns to the bottom and resumes following output. Defaults to false; respects reduced motion and can be interrupted by scrolling.',
+    },
   },
   args: {
     scenario: 'empty',
     density: 'comfortable',
     reportTitle: sampleReport.title,
     greetingName: clinician.firstName,
+    autoScrollOnSubmit: false,
   },
   render: (args) => <AssistantDemo key={args.scenario} {...args} />,
 } satisfies Meta<typeof AssistantDemo>;
@@ -96,7 +102,7 @@ export const DenseThread: Story = {
     docs: {
       description: {
         story:
-          'Use to review ten turns in a bounded sidebar. Scroll upward to reveal the down-arrow button above the composer. Activate Scroll to latest response to return to the bottom and resume following output. Incoming text does not move you away from earlier content otherwise. Header and composer stay fixed. Change density to compare spacing.',
+          'Use to review ten turns in a bounded sidebar. Scroll upward to reveal the down-arrow button above the composer. Activate Scroll to latest response to return to the bottom and resume following output. Enable autoScrollOnSubmit, scroll up, and send a message to try the optional smooth return. By default, incoming text preserves your reading position. Header and composer stay fixed. Change density to compare spacing.',
       },
     },
   },

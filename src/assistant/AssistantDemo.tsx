@@ -23,6 +23,7 @@ export type AssistantDemoProps = {
   density?: AssistantDensity;
   reportTitle?: string;
   greetingName?: string;
+  autoScrollOnSubmit?: boolean;
 };
 
 function initialMessages(scenario: DemoScenario): Message[] {
@@ -57,6 +58,7 @@ export function AssistantDemo({
   density = 'comfortable',
   reportTitle = sampleReport.title,
   greetingName = clinician.firstName,
+  autoScrollOnSubmit = false,
 }: AssistantDemoProps) {
   const [history, setHistory] = useState(() => initialMessages(scenario));
   const [value, setValue] = useState('');
@@ -129,6 +131,7 @@ export function AssistantDemo({
           }
           reportTitle={reportTitle}
           greetingName={greetingName}
+          autoScrollOnSubmit={autoScrollOnSubmit}
           density={density}
           suggestions={sampleSuggestions}
           onSubmit={() => submitPrompt(value)}

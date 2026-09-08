@@ -68,4 +68,6 @@ export type AssistantPanelProps = ComposerProps & {
   density?: AssistantDensity;
   /** Host styling. Provide a bounded-height parent for independent thread scrolling. */
   className?: string;
+  /** Resume following a new user turn with smooth scroll; defaults to false. Respects reduced motion. */
+  autoScrollOnSubmit?: boolean;
 };

@@ -23,9 +23,9 @@ export function SuggestionChips({
             variant="secondary"
             disabled={disabled}
             onClick={() => onSuggestionSelect(prompt)}
-            className="h-auto min-h-12 w-full justify-between gap-3 px-3 py-2.5 text-left leading-5 font-medium whitespace-normal text-text-primary hover:border-sage hover:bg-sage-surface"
+            className="h-auto min-h-10 w-full justify-between gap-3 border-sage/30 bg-sage/15 px-3 py-2 text-left leading-5 font-normal whitespace-normal text-text-primary hover:border-sage hover:bg-sage/25 focus-visible:transition-none active:border-sage active:bg-sage/35 active:duration-0 motion-reduce:transition-none"
           >
-            <span>{prompt}</span>
+            <span className="min-w-0 wrap-anywhere">{prompt}</span>
             <ArrowUpRight
               size={16}
               className="shrink-0 text-accent"

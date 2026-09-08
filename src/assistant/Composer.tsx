@@ -78,7 +78,7 @@ export function Composer({
           aria-label={streaming ? 'Stop response' : 'Send message'}
           title={streaming ? 'Stop response' : 'Send message'}
           aria-disabled={!streaming && !canSubmit}
-          className="shrink-0 bg-accent text-text-inverse hover:bg-accent-hover focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface aria-disabled:opacity-50"
+          className="shrink-0 bg-accent text-text-inverse transition-[background-color] duration-150 ease-[ease] hover:bg-accent-hover focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface focus-visible:transition-none motion-reduce:transition-none aria-disabled:opacity-50 aria-disabled:hover:bg-accent"
           onClick={(event) => {
             if (!streaming) return;
             event.preventDefault();
