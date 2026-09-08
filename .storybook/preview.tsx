@@ -16,8 +16,10 @@ const preview: Preview = {
       defaultTheme: 'light',
       attributeName: 'data-theme',
     }),
-    (Story) => (
-      <div className="min-h-screen bg-bg-page p-4 font-sans text-text-primary antialiased">
+    (Story, { parameters }) => (
+      <div
+        className={`bg-bg-page font-sans text-text-primary antialiased ${parameters.layout === 'fullscreen' ? '' : 'min-h-screen p-4'}`}
+      >
         <Story />
       </div>
     ),

@@ -164,13 +164,13 @@ export function AssistantDemo({
   }
 
   return (
-    <div className="flex h-dvh flex-col items-center justify-center bg-bg-page px-3 py-5 sm:px-6">
+    <div className="flex h-dvh flex-col items-center justify-center bg-bg-page px-3 py-4 sm:px-6">
       <div className="flex min-h-0 w-full max-w-105 flex-1 flex-col justify-center">
         <AssistantPanel
           messages={messages}
           value={value}
           onValueChange={setValue}
-          className="max-h-190 flex-1 rounded-md shadow-sm"
+          className="flex-1 rounded-md shadow-sm"
           status={
             generating
               ? 'streaming'

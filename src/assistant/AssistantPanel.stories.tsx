@@ -45,7 +45,7 @@ import { sampleSuggestions } from '@/fixtures';
   greetingName={${JSON.stringify(args.greetingName)}}
   density={${JSON.stringify(args.density)}}
   autoScrollOnSubmit={${args.autoScrollOnSubmit}}
-  className="max-h-190 flex-1 rounded-md shadow-sm"
+  className="flex-1 rounded-md shadow-sm"
 />`,
       },
     },
