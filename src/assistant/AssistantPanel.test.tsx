@@ -1,11 +1,91 @@
+import type { ComponentProps } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { denseThread, sampleReport, sampleSuggestions } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
-import type { AssistantPanelProps } from './types';
+
+type AssistantPanelProps = ComponentProps<typeof AssistantPanel>;
 
 describe('AssistantPanel', () => {
+  it('observes the thread and content and disconnects on unmount', () => {
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    const ResizeObserverMock = vi.fn(function () {
+      return { observe, disconnect };
+    });
+    vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+
+    try {
+      const { unmount } = render(
+        <AssistantPanel
+          messages={denseThread}
+          status="idle"
+          value=""
+          reportTitle={sampleReport.title}
+          suggestions={sampleSuggestions}
+          onValueChange={vi.fn()}
+          onSubmit={vi.fn()}
+          onStop={vi.fn()}
+          onRetry={vi.fn()}
+          onSuggestionSelect={vi.fn()}
+          onCitationClick={vi.fn()}
+        />,
+      );
+      const thread = screen.getByRole('region', { name: 'Conversation' });
+
+      expect(ResizeObserverMock).toHaveBeenCalledOnce();
+      expect(observe).toHaveBeenCalledTimes(2);
+      expect(observe).toHaveBeenCalledWith(thread);
+      expect(observe).toHaveBeenCalledWith(thread.firstElementChild);
+      expect(disconnect).not.toHaveBeenCalled();
+      unmount();
+      expect(disconnect).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each([true, false])(
+    'handles a density-only change with unchanged messages (following: %s)',
+    (following) => {
+      const props: AssistantPanelProps = {
+        messages: denseThread,
+        status: 'idle',
+        value: '',
+        reportTitle: sampleReport.title,
+        suggestions: sampleSuggestions,
+        onValueChange: vi.fn(),
+        onSubmit: vi.fn(),
+        onStop: vi.fn(),
+        onRetry: vi.fn(),
+        onSuggestionSelect: vi.fn(),
+        onCitationClick: vi.fn(),
+      };
+      const { rerender } = render(
+        <AssistantPanel {...props} density="compact" />,
+      );
+      const thread = screen.getByRole('region', { name: 'Conversation' });
+      let height = 1000;
+      Object.defineProperties(thread, {
+        scrollHeight: { get: () => height },
+        clientHeight: { value: 200 },
+      });
+      thread.scrollTop = following ? 800 : 100;
+      fireEvent.scroll(thread);
+
+      height = 1200;
+      rerender(<AssistantPanel {...props} density="comfortable" />);
+
+      expect(thread.scrollTop).toBe(following ? height : 100);
+      const latest = screen.queryByRole('button', {
+        name: 'Scroll to latest response',
+      });
+      if (following) expect(latest).not.toBeInTheDocument();
+      else expect(latest).toBeVisible();
+    },
+  );
+
   it.each([
     { autoScrollOnSubmit: undefined, reducedMotion: false },
     { autoScrollOnSubmit: true, reducedMotion: false },
@@ -29,7 +109,7 @@ describe('AssistantPanel', () => {
         const props: AssistantPanelProps = {
           messages: denseThread,
           status: 'idle',
-          value: sampleSuggestions[0],
+          value: sampleSuggestions[0].text,
           reportTitle: sampleReport.title,
           suggestions: sampleSuggestions,
           onValueChange: vi.fn(),
@@ -67,7 +147,7 @@ describe('AssistantPanel', () => {
           {
             id: 'new-user',
             role: 'user' as const,
-            content: sampleSuggestions[0],
+            content: sampleSuggestions[0].text,
           },
           {
             id: 'new-answer',
@@ -263,7 +343,7 @@ describe('AssistantPanel', () => {
       const props: AssistantPanelProps = {
         messages: denseThread,
         status: 'idle',
-        value: sampleSuggestions[0],
+        value: sampleSuggestions[0].text,
         reportTitle: sampleReport.title,
         suggestions: sampleSuggestions,
         onValueChange: vi.fn(),
@@ -297,7 +377,7 @@ describe('AssistantPanel', () => {
       expect(button).not.toBeInTheDocument();
       expect(
         screen.getByRole('textbox', { name: 'Message to assistant' }),
-      ).toHaveValue(sampleSuggestions[0]);
+      ).toHaveValue(sampleSuggestions[0].text);
       expect(props.onSubmit).not.toHaveBeenCalled();
 
       height = 1200;
@@ -370,7 +450,7 @@ describe('AssistantPanel', () => {
       const props: AssistantPanelProps = {
         messages: denseThread,
         status: 'idle',
-        value: sampleSuggestions[0],
+        value: sampleSuggestions[0].text,
         reportTitle: sampleReport.title,
         suggestions: sampleSuggestions,
         onValueChange: vi.fn(),
@@ -402,7 +482,7 @@ describe('AssistantPanel', () => {
       rerender(<AssistantPanel {...props} messages={[]} />);
       expect(button).not.toBeInTheDocument();
       expect(arrowFocused ? thread : input).toHaveFocus();
-      expect(input).toHaveValue(sampleSuggestions[0]);
+      expect(input).toHaveValue(sampleSuggestions[0].text);
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
 
       height = 1000;

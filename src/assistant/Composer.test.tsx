@@ -13,7 +13,7 @@ describe('Composer', () => {
       const onSubmit = vi.fn();
       render(
         <Composer
-          value={sampleSuggestions[0]}
+          value={sampleSuggestions[0].text}
           status="idle"
           onValueChange={vi.fn()}
           onSubmit={onSubmit}
@@ -44,7 +44,7 @@ describe('Composer', () => {
     const onValueChange = vi.fn();
     render(
       <Composer
-        value={sampleSuggestions[0]}
+        value={sampleSuggestions[0].text}
         status="streaming"
         onValueChange={onValueChange}
         onSubmit={onSubmit}
@@ -58,8 +58,10 @@ describe('Composer', () => {
     expect(
       screen.queryByRole('button', { name: 'Send message' }),
     ).not.toBeInTheDocument();
-    fireEvent.change(input, { target: { value: sampleSuggestions[1] } });
-    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(sampleSuggestions[1]);
+    fireEvent.change(input, { target: { value: sampleSuggestions[1].text } });
+    expect(onValueChange).toHaveBeenCalledExactlyOnceWith(
+      sampleSuggestions[1].text,
+    );
     await user.click(input);
     await user.keyboard('{Enter}');
     fireEvent.submit(screen.getByRole('form', { name: 'Assistant composer' }));
@@ -102,7 +104,7 @@ describe('Composer', () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
     function Draft() {
-      const [value, setValue] = useState<string>(sampleSuggestions[0]);
+      const [value, setValue] = useState<string>(sampleSuggestions[0].text);
       return (
         <Composer
           value={value}
@@ -119,7 +121,7 @@ describe('Composer', () => {
     await user.click(input);
     await user.keyboard('{End}{Shift>}{Enter}{/Shift}');
 
-    expect(input).toHaveValue(`${sampleSuggestions[0]}\n`);
+    expect(input).toHaveValue(`${sampleSuggestions[0].text}\n`);
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -127,7 +129,7 @@ describe('Composer', () => {
     const onSubmit = vi.fn();
     render(
       <Composer
-        value={sampleSuggestions[0]}
+        value={sampleSuggestions[0].text}
         status="idle"
         onValueChange={vi.fn()}
         onSubmit={onSubmit}
@@ -155,7 +157,7 @@ describe('Composer', () => {
         const onSubmit = vi.fn();
         render(
           <Composer
-            value={sampleSuggestions[0]}
+            value={sampleSuggestions[0].text}
             status="idle"
             onValueChange={vi.fn()}
             onSubmit={onSubmit}

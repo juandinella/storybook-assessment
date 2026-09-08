@@ -1,8 +1,7 @@
 import {
-  useCallback,
+  type ComponentProps,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -14,7 +13,41 @@ import { cn } from '@/lib/cn';
 import { AssistantMessage } from './AssistantMessage';
 import { Composer } from './Composer';
 import { SuggestionChips } from './SuggestionChips';
-import type { AssistantPanelProps, Message } from './types';
+import { useConversationScroll } from './useConversationScroll';
+import type { AssistantDensity, Citation, Message, Suggestion } from './types';
+
+/**
+ * Controlled sidebar. Provide a bounded-height parent for independent thread scrolling.
+ * A streaming status or message blocks Send, Retry, and suggestions while keeping the draft editable.
+ */
+type AssistantPanelProps = ComponentProps<typeof Composer> & {
+  /** Consumer-owned conversation. Replace the array and changed message objects so scrolling and announcements can detect updates. */
+  messages: readonly Message[];
+  /** Prompts with stable, unique IDs, shown only when messages is empty. */
+  suggestions: readonly Suggestion[];
+  /** Requests retry of a failed assistant message by ID; the consumer handles generation and message updates. */
+  onRetry: (messageId: string) => void;
+  /** Requests submission of the selected prompt unchanged; does not edit value or call onSubmit. */
+  onSuggestionSelect: (prompt: string) => void;
+  /** Reports the selected citation object, including during streaming; the consumer handles source inspection or navigation. */
+  onCitationClick: (citation: Citation) => void;
+  /** Report context displayed beneath the panel heading. */
+  reportTitle: string;
+  /** Used in the empty-state greeting; an omitted or empty value produces a generic greeting. */
+  greetingName?: string;
+  /** Defaults to comfortable. Compact reduces conversation spacing and user-bubble padding, not typography, button sizing, header, or composer styles. */
+  density?: AssistantDensity;
+  /** Classes merged onto the panel's outer section. */
+  className?: string;
+  /**
+   * Defaults to false. Resumes following when a new user-message ID appears in
+   * an existing conversation while the reader is no longer following output.
+   * Triggered by messages updates, not by onSubmit. Uses smooth scrolling unless
+   * reduced motion is preferred; pointer, wheel, touch, or scroll-key input in
+   * the conversation cancels the animation.
+   */
+  autoScrollOnSubmit?: boolean;
+};
 
 export function AssistantPanel({
   messages,
@@ -35,13 +68,18 @@ export function AssistantPanel({
 }: AssistantPanelProps) {
   const headingId = useId();
   const panelRef = useRef<HTMLElement>(null);
-  const threadRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const following = useRef(true);
-  const smoothScrolling = useRef(false);
   const previous = useRef(new Map<string, Message>());
   const [announcement, setAnnouncement] = useState('');
-  const [showLatest, setShowLatest] = useState(false);
+  const {
+    threadRef,
+    contentRef,
+    showLatest,
+    cancelSmoothScroll,
+    handleThreadScroll,
+    handleThreadScrollEnd,
+    handleThreadKeyDown,
+    handleScrollToLatest,
+  } = useConversationScroll({ panelRef, messages, density, autoScrollOnSubmit });
   const hasMessages = messages.length > 0;
   const busy =
     status === 'streaming' ||
@@ -50,78 +88,6 @@ export function AssistantPanel({
   function focusDraft() {
     panelRef.current?.querySelector('textarea')?.focus({ preventScroll: true });
   }
-
-  const updateFollowState = useCallback((nearBottom: boolean) => {
-    following.current = nearBottom;
-    const thread = threadRef.current;
-    if (nearBottom && thread) {
-      const button = panelRef.current?.querySelector(
-        '[aria-label="Scroll to latest response"]',
-      );
-      if (button === thread.ownerDocument.activeElement)
-        thread.focus({ preventScroll: true });
-    }
-    setShowLatest(!nearBottom);
-  }, []);
-
-  function cancelSmoothScroll() {
-    const thread = threadRef.current;
-    if (!smoothScrolling.current || !thread) return;
-    smoothScrolling.current = false;
-    thread.scrollTo({ top: thread.scrollTop, behavior: 'instant' });
-    updateFollowState(false);
-  }
-
-  useLayoutEffect(() => {
-    if (!hasMessages) {
-      smoothScrolling.current = false;
-      // Recover focus before removing the arrow, without painting it over the empty state.
-      updateFollowState(true);
-      return;
-    }
-    const thread = threadRef.current;
-    if (!thread) return;
-    const newUserTurn =
-      previous.current.size > 0 &&
-      messages.some(
-        (message) =>
-          message.role === 'user' && !previous.current.has(message.id),
-      );
-    if (autoScrollOnSubmit && newUserTurn && !following.current) {
-      const reducedMotion = thread.ownerDocument.defaultView?.matchMedia(
-        '(prefers-reduced-motion: reduce)',
-      ).matches;
-      updateFollowState(true);
-      if (
-        !reducedMotion &&
-        thread.scrollHeight - thread.clientHeight - thread.scrollTop > 1
-      ) {
-        smoothScrolling.current = true;
-        thread.scrollTo({ top: thread.scrollHeight, behavior: 'smooth' });
-        return;
-      }
-    }
-    // Streaming and resize must not interrupt the user-initiated smooth scroll.
-    if (following.current && !smoothScrolling.current)
-      thread.scrollTop = thread.scrollHeight;
-  }, [messages, density, hasMessages, autoScrollOnSubmit, updateFollowState]);
-
-  useEffect(() => {
-    const thread = threadRef.current;
-    const content = contentRef.current;
-    if (!thread || !content || typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(() => {
-      if (!hasMessages || smoothScrolling.current) return;
-      const nearBottom =
-        thread.scrollHeight - thread.scrollTop - thread.clientHeight <= 48;
-      const shouldFollow = following.current || nearBottom;
-      updateFollowState(shouldFollow);
-      if (shouldFollow) thread.scrollTop = thread.scrollHeight;
-    });
-    observer.observe(thread);
-    observer.observe(content);
-    return () => observer.disconnect();
-  }, [hasMessages, updateFollowState]);
 
   useEffect(() => {
     const changed = messages.filter((message) => {
@@ -154,6 +120,18 @@ export function AssistantPanel({
     );
   }, [messages]);
 
+  function handleSuggestionSelect(prompt: string) {
+    if (busy) return;
+    focusDraft();
+    onSuggestionSelect(prompt);
+  }
+
+  function handleRetry(id: string) {
+    if (busy) return;
+    focusDraft();
+    onRetry(id);
+  }
+
   return (
     <section
       ref={panelRef}
@@ -181,37 +159,12 @@ export function AssistantPanel({
         role="region"
         aria-label="Conversation"
         tabIndex={0}
-        onScroll={(event) => {
-          if (!hasMessages || smoothScrolling.current) return;
-          const node = event.currentTarget;
-          const nearBottom =
-            node.scrollHeight - node.scrollTop - node.clientHeight <= 48;
-          updateFollowState(nearBottom);
-        }}
-        onScrollEnd={() => {
-          if (!smoothScrolling.current) return;
-          smoothScrolling.current = false;
-          const thread = threadRef.current;
-          if (thread) thread.scrollTop = thread.scrollHeight;
-          updateFollowState(true);
-        }}
+        onScroll={handleThreadScroll}
+        onScrollEnd={handleThreadScrollEnd}
         onWheel={cancelSmoothScroll}
         onTouchStart={cancelSmoothScroll}
         onPointerDown={cancelSmoothScroll}
-        onKeyDown={(event) => {
-          if (
-            [
-              'ArrowUp',
-              'ArrowDown',
-              'PageUp',
-              'PageDown',
-              'Home',
-              'End',
-              ' ',
-            ].includes(event.key)
-          )
-            cancelSmoothScroll();
-        }}
+        onKeyDown={handleThreadKeyDown}
         className="scrollbar-thin min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus"
       >
         <div
@@ -257,11 +210,7 @@ export function AssistantPanel({
                     suggestions={suggestions}
                     density={density}
                     disabled={busy}
-                    onSuggestionSelect={(prompt) => {
-                      if (busy) return;
-                      focusDraft();
-                      onSuggestionSelect(prompt);
-                    }}
+                    onSuggestionSelect={handleSuggestionSelect}
                   />
                 </>
               )}
@@ -274,11 +223,7 @@ export function AssistantPanel({
                 density={density}
                 retryDisabled={busy}
                 onCitationClick={onCitationClick}
-                onRetry={(id) => {
-                  if (busy) return;
-                  focusDraft();
-                  onRetry(id);
-                }}
+                onRetry={handleRetry}
               />
             ))
           )}
@@ -290,13 +235,7 @@ export function AssistantPanel({
             aria-label="Scroll to latest response"
             title="Scroll to latest response"
             className="absolute -top-12 left-1/2 -translate-x-1/2 rounded-full border border-border-default bg-bg-surface shadow-sm focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface"
-            onClick={() => {
-              const thread = threadRef.current;
-              if (!thread) return;
-              updateFollowState(true);
-              thread.scrollTop = thread.scrollHeight;
-              thread.focus({ preventScroll: true });
-            }}
+            onClick={handleScrollToLatest}
           >
             <ArrowDown size={18} aria-hidden="true" />
           </IconButton>

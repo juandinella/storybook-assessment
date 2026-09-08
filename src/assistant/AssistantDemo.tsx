@@ -10,7 +10,7 @@ import {
   useFakeStream,
 } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
-import type { AssistantDensity, AssistantPanelProps, Message } from './types';
+import type { AssistantDensity, Citation, Message } from './types';
 
 export type DemoScenario =
   | 'empty'
@@ -18,13 +18,13 @@ export type DemoScenario =
   | 'error'
   | 'citations'
   | 'dense';
-export type AssistantDemoProps = {
+type AssistantDemoProps = {
   scenario: DemoScenario;
   density?: AssistantDensity;
   reportTitle?: string;
   greetingName?: string;
   autoScrollOnSubmit?: boolean;
-  onCitationClick?: AssistantPanelProps['onCitationClick'];
+  onCitationClick?: (citation: Citation) => void;
 };
 
 function initialMessages(scenario: DemoScenario): Message[] {
@@ -115,14 +115,62 @@ export function AssistantDemo({
     start();
   }
 
+  function handleStop() {
+    if (!generating) return;
+    stop();
+    setHistory(
+      messages.map((message) =>
+        message.id === activeId
+          ? {
+              ...message,
+              status: 'done',
+              interrupted: true,
+              citations: undefined,
+            }
+          : message,
+      ),
+    );
+    setActiveId(null);
+    locked.current = false;
+  }
+
+  function handleRetry(id: string) {
+    if (
+      locked.current ||
+      !messages.some(
+        (message) =>
+          message.id === id &&
+          message.role === 'assistant' &&
+          message.status === 'error',
+      )
+    )
+      return;
+    locked.current = true;
+    setHistory(
+      messages.map((message) =>
+        message.id === id
+          ? {
+              ...message,
+              content: '',
+              status: 'streaming',
+              citations: undefined,
+              interrupted: false,
+            }
+          : message,
+      ),
+    );
+    setActiveId(id);
+    start();
+  }
+
   return (
-    <div className="flex h-dvh flex-col items-center justify-center bg-bg-page px-3 py-5 sm:px-6">
+    <div className="flex h-dvh flex-col items-center justify-center bg-bg-page px-3 py-4 sm:px-6">
       <div className="flex min-h-0 w-full max-w-105 flex-1 flex-col justify-center">
         <AssistantPanel
           messages={messages}
           value={value}
           onValueChange={setValue}
-          className="max-h-190 flex-1 rounded-md shadow-sm"
+          className="flex-1 rounded-md shadow-sm"
           status={
             generating
               ? 'streaming'
@@ -137,52 +185,8 @@ export function AssistantDemo({
           suggestions={sampleSuggestions}
           onSubmit={() => submitPrompt(value)}
           onSuggestionSelect={submitPrompt}
-          onStop={() => {
-            if (!generating) return;
-            stop();
-            setHistory(
-              messages.map((message) =>
-                message.id === activeId
-                  ? {
-                      ...message,
-                      status: 'done',
-                      interrupted: true,
-                      citations: undefined,
-                    }
-                  : message,
-              ),
-            );
-            setActiveId(null);
-            locked.current = false;
-          }}
-          onRetry={(id) => {
-            if (
-              locked.current ||
-              !messages.some(
-                (message) =>
-                  message.id === id &&
-                  message.role === 'assistant' &&
-                  message.status === 'error',
-              )
-            )
-              return;
-            locked.current = true;
-            setHistory(
-              messages.map((message) =>
-                message.id === id
-                  ? {
-                      ...message,
-                      content: '',
-                      status: 'streaming',
-                      citations: undefined,
-                      interrupted: false,
-                    }
-                  : message,
-              ),
-            );
-            setActiveId(id);
-            start();
-          }}
+          onStop={handleStop}
+          onRetry={handleRetry}
           onCitationClick={onCitationClick}
         />
       </div>

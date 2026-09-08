@@ -1,4 +1,4 @@
-import type { Citation, Message } from '@/assistant/types';
+import type { Citation, Message, Suggestion } from '@/assistant/types';
 
 export const clinician = {
   firstName: 'Alex',
@@ -18,10 +18,19 @@ export const sampleCitations: Citation[] = [
 ];
 
 export const sampleSuggestions = [
-  'Summarize the impression in two sentences',
-  'Which scores support the attention finding?',
-  'Rewrite the history in plainer language',
-] as const;
+  {
+    id: 'summarize-impression',
+    text: 'Summarize the impression in two sentences',
+  },
+  {
+    id: 'support-attention-finding',
+    text: 'Which scores support the attention finding?',
+  },
+  {
+    id: 'simplify-history',
+    text: 'Rewrite the history in plainer language',
+  },
+] as const satisfies readonly Suggestion[];
 
 export const sampleMessages: Message[] = [
   {

@@ -8,7 +8,19 @@ import {
 import { Button } from '@/primitives/Button';
 import { Text } from '@/primitives/Text';
 import { cn } from '@/lib/cn';
-import type { AssistantMessageProps, CitationKind } from './types';
+import type { AssistantDensity, Citation, CitationKind, Message } from './types';
+
+type AssistantMessageProps = {
+  message: Message;
+  /** Requests retry of the failed assistant message by ID; does not change the message. */
+  onRetry: (messageId: string) => void;
+  /** Reports the selected citation object; the consumer handles source inspection or navigation. */
+  onCitationClick: (citation: Citation) => void;
+  /** Disables the Retry button without hiding it. Defaults to false. */
+  retryDisabled?: boolean;
+  /** Defaults to comfortable. Compact reduces user-bubble padding and content spacing, not typography or button sizing. */
+  density?: AssistantDensity;
+};
 
 const sourceTypes = {
   document: { label: 'Document', Icon: FileText },

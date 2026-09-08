@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { action } from 'storybook/actions';
 import { clinician, sampleReport } from '@/fixtures';
 import { AssistantPanel } from './AssistantPanel';
 import { AssistantDemo } from './AssistantDemo';
-import type { AssistantPanelProps } from './types';
 
 const meta = {
   title: 'Assistant/Panel',
@@ -24,7 +24,7 @@ const meta = {
         type: 'dynamic',
         transform: (
           _source: string,
-          { args }: { args: AssistantPanelProps },
+          { args }: { args: ComponentProps<typeof AssistantPanel> },
         ) => `import { AssistantPanel } from '@/assistant';
 import { sampleSuggestions } from '@/fixtures';
 
@@ -45,7 +45,7 @@ import { sampleSuggestions } from '@/fixtures';
   greetingName={${JSON.stringify(args.greetingName)}}
   density={${JSON.stringify(args.density)}}
   autoScrollOnSubmit={${args.autoScrollOnSubmit}}
-  className="max-h-190 flex-1 rounded-md shadow-sm"
+  className="flex-1 rounded-md shadow-sm"
 />`,
       },
     },
@@ -59,7 +59,7 @@ import { sampleSuggestions } from '@/fixtures';
     value: { control: false },
     suggestions: {
       control: false,
-      table: { type: { summary: 'readonly string[]' } },
+      table: { type: { summary: 'readonly Suggestion[]' } },
     },
     className: { control: false },
     onValueChange: { control: false },

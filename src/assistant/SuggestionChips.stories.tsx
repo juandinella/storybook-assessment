@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Stacked, wrapping prompt buttons. Activation reports the exact prompt through onSuggestionSelect. These isolated stories show the component without submission feedback; the Panel stories demonstrate immediate submission and draft clearing.',
+          'Stacked, wrapping prompt buttons. Each suggestion has a stable, unique id and display text. Activation reports the exact text through onSuggestionSelect. These isolated stories show the component without submission feedback; the Panel stories demonstrate immediate submission and draft clearing.',
       },
     },
   },
