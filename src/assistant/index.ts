@@ -8,4 +8,5 @@ export type {
   Citation,
   CitationKind,
   Message,
+  Suggestion,
 } from './types';

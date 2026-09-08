@@ -15,7 +15,7 @@ import { cn } from '@/lib/cn';
 import { AssistantMessage } from './AssistantMessage';
 import { Composer } from './Composer';
 import { SuggestionChips } from './SuggestionChips';
-import type { AssistantDensity, Citation, Message } from './types';
+import type { AssistantDensity, Citation, Message, Suggestion } from './types';
 
 /**
  * Controlled sidebar. Provide a bounded-height parent for independent thread scrolling.
@@ -24,8 +24,8 @@ import type { AssistantDensity, Citation, Message } from './types';
 type AssistantPanelProps = ComponentProps<typeof Composer> & {
   /** Consumer-owned conversation. Replace the array and changed message objects so scrolling and announcements can detect updates. */
   messages: readonly Message[];
-  /** Unique prompts shown only when messages is empty. */
-  suggestions: readonly string[];
+  /** Prompts with stable, unique IDs, shown only when messages is empty. */
+  suggestions: readonly Suggestion[];
   /** Requests retry of a failed assistant message by ID; the consumer handles generation and message updates. */
   onRetry: (messageId: string) => void;
   /** Requests submission of the selected prompt unchanged; does not edit value or call onSubmit. */

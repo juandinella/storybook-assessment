@@ -31,7 +31,7 @@ describe('AssistantPanel', () => {
         const props: AssistantPanelProps = {
           messages: denseThread,
           status: 'idle',
-          value: sampleSuggestions[0],
+          value: sampleSuggestions[0].text,
           reportTitle: sampleReport.title,
           suggestions: sampleSuggestions,
           onValueChange: vi.fn(),
@@ -69,7 +69,7 @@ describe('AssistantPanel', () => {
           {
             id: 'new-user',
             role: 'user' as const,
-            content: sampleSuggestions[0],
+            content: sampleSuggestions[0].text,
           },
           {
             id: 'new-answer',
@@ -265,7 +265,7 @@ describe('AssistantPanel', () => {
       const props: AssistantPanelProps = {
         messages: denseThread,
         status: 'idle',
-        value: sampleSuggestions[0],
+        value: sampleSuggestions[0].text,
         reportTitle: sampleReport.title,
         suggestions: sampleSuggestions,
         onValueChange: vi.fn(),
@@ -299,7 +299,7 @@ describe('AssistantPanel', () => {
       expect(button).not.toBeInTheDocument();
       expect(
         screen.getByRole('textbox', { name: 'Message to assistant' }),
-      ).toHaveValue(sampleSuggestions[0]);
+      ).toHaveValue(sampleSuggestions[0].text);
       expect(props.onSubmit).not.toHaveBeenCalled();
 
       height = 1200;
@@ -372,7 +372,7 @@ describe('AssistantPanel', () => {
       const props: AssistantPanelProps = {
         messages: denseThread,
         status: 'idle',
-        value: sampleSuggestions[0],
+        value: sampleSuggestions[0].text,
         reportTitle: sampleReport.title,
         suggestions: sampleSuggestions,
         onValueChange: vi.fn(),
@@ -404,7 +404,7 @@ describe('AssistantPanel', () => {
       rerender(<AssistantPanel {...props} messages={[]} />);
       expect(button).not.toBeInTheDocument();
       expect(arrowFocused ? thread : input).toHaveFocus();
-      expect(input).toHaveValue(sampleSuggestions[0]);
+      expect(input).toHaveValue(sampleSuggestions[0].text);
       expect(screen.getByRole('status')).toBeEmptyDOMElement();
 
       height = 1000;

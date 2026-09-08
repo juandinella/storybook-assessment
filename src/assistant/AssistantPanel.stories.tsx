@@ -59,7 +59,7 @@ import { sampleSuggestions } from '@/fixtures';
     value: { control: false },
     suggestions: {
       control: false,
-      table: { type: { summary: 'readonly string[]' } },
+      table: { type: { summary: 'readonly Suggestion[]' } },
     },
     className: { control: false },
     onValueChange: { control: false },

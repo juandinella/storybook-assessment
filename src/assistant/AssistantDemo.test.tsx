@@ -38,7 +38,7 @@ afterEach(() => {
 describe('AssistantDemo', () => {
   it('forwards source selections without extra feedback, focus changes, or draft changes', async () => {
     const { user, input, onCitationClick } = renderDemo('citations');
-    await user.type(input, sampleSuggestions[0]);
+    await user.type(input, sampleSuggestions[0].text);
 
     for (const citation of sampleCitations) {
       const source = screen.getByRole('button', {
@@ -52,20 +52,20 @@ describe('AssistantDemo', () => {
         screen.queryByRole('status', { name: 'Source selection' }),
       ).not.toBeInTheDocument();
       expect(source).toHaveFocus();
-      expect(input).toHaveValue(sampleSuggestions[0]);
+      expect(input).toHaveValue(sampleSuggestions[0].text);
     }
     expect(onCitationClick).toHaveBeenCalledTimes(sampleCitations.length);
   });
 
   it('sends and clears the draft, allows editing during streaming, and submits the retained draft after completion', async () => {
     const { user, input, thread, announcement } = renderDemo('empty');
-    await user.type(input, sampleSuggestions[0]);
+    await user.type(input, sampleSuggestions[0].text);
     await user.keyboard('{Enter}');
 
     expect(thread.getAllByRole('article')).toHaveLength(2);
     expect(
       within(thread.getByRole('article', { name: 'You' })).getByText(
-        sampleSuggestions[0],
+        sampleSuggestions[0].text,
         { exact: true },
       ),
     ).toBeVisible();
@@ -77,10 +77,10 @@ describe('AssistantDemo', () => {
     ).toBeVisible();
     expect(announcement).toHaveTextContent('Preparing response.');
 
-    await user.type(input, sampleSuggestions[1]);
+    await user.type(input, sampleSuggestions[1].text);
     await user.keyboard('{Enter}');
     expect(thread.getAllByRole('article')).toHaveLength(2);
-    expect(input).toHaveValue(sampleSuggestions[1]);
+    expect(input).toHaveValue(sampleSuggestions[1].text);
     await act(async () => {
       await vi.runAllTimersAsync();
     });
@@ -93,7 +93,7 @@ describe('AssistantDemo', () => {
       screen.queryByRole('button', { name: 'Stop response' }),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Send message' })).toBeVisible();
-    expect(input).toHaveValue(sampleSuggestions[1]);
+    expect(input).toHaveValue(sampleSuggestions[1].text);
     expect(input).toHaveFocus();
     expect(announcement).toHaveTextContent('Response complete.');
 
@@ -102,7 +102,7 @@ describe('AssistantDemo', () => {
     expect(thread.getAllByRole('article')).toHaveLength(4);
     expect(
       within(thread.getAllByRole('article', { name: 'You' })[1]).getByText(
-        sampleSuggestions[1],
+        sampleSuggestions[1].text,
         { exact: true },
       ),
     ).toBeVisible();
@@ -129,12 +129,12 @@ describe('AssistantDemo', () => {
         expect(
           within(answer).getByText('Preparing', { exact: true }),
         ).toBeVisible();
-      await user.type(input, sampleSuggestions[2]);
+      await user.type(input, sampleSuggestions[2].text);
 
       await user.click(screen.getByRole('button', { name: 'Stop response' }));
 
       expect(input).toHaveFocus();
-      expect(input).toHaveValue(sampleSuggestions[2]);
+      expect(input).toHaveValue(sampleSuggestions[2].text);
       expect(
         screen.getByRole('button', { name: 'Send message' }),
       ).toBeVisible();
@@ -167,7 +167,7 @@ describe('AssistantDemo', () => {
           within(answer).getByText(partial, { exact: true }),
         ).toBeVisible();
       expect(thread.getAllByRole('article')).toHaveLength(2);
-      expect(input).toHaveValue(sampleSuggestions[2]);
+      expect(input).toHaveValue(sampleSuggestions[2].text);
       expect(
         screen.queryByRole('button', { name: 'Retry' }),
       ).not.toBeInTheDocument();
@@ -177,7 +177,7 @@ describe('AssistantDemo', () => {
       expect(thread.getAllByRole('article')).toHaveLength(4);
       expect(
         within(thread.getAllByRole('article', { name: 'You' })[1]).getByText(
-          sampleSuggestions[2],
+          sampleSuggestions[2].text,
           { exact: true },
         ),
       ).toBeVisible();
@@ -195,7 +195,7 @@ describe('AssistantDemo', () => {
     expect(announcement).toHaveTextContent(
       'Response failed. Retry is available.',
     );
-    await user.type(input, sampleSuggestions[0]);
+    await user.type(input, sampleSuggestions[0].text);
     expect(input).not.toHaveAttribute('aria-invalid', 'true');
     await user.click(screen.getByRole('button', { name: 'Send message' }));
     const retry = within(olderAnswer).getByRole('button', { name: 'Retry' });
@@ -212,13 +212,13 @@ describe('AssistantDemo', () => {
       name: 'Assistant',
     })[1];
     const laterContent = laterAnswer.textContent;
-    await user.type(input, sampleSuggestions[2]);
+    await user.type(input, sampleSuggestions[2].text);
     expect(announcement).toHaveTextContent('Response complete.');
 
     await user.click(retry);
 
     expect(input).toHaveFocus();
-    expect(input).toHaveValue(sampleSuggestions[2]);
+    expect(input).toHaveValue(sampleSuggestions[2].text);
     expect(thread.getAllByRole('article')).toHaveLength(4);
     expect(thread.getAllByRole('article', { name: 'Assistant' })[0]).toBe(
       olderAnswer,
@@ -261,27 +261,27 @@ describe('AssistantDemo', () => {
       within(olderAnswer).getByText(sampleMessages[1].content, { exact: true }),
     ).toBeVisible();
     expect(laterAnswer.textContent).toBe(laterContent);
-    expect(input).toHaveValue(sampleSuggestions[2]);
+    expect(input).toHaveValue(sampleSuggestions[2].text);
     expect(input).toHaveFocus();
   });
 
   it('immediately submits the exact suggestion, clears an existing draft, and restores composer focus', async () => {
     const { user, input, thread } = renderDemo('empty');
-    await user.type(input, sampleSuggestions[2]);
+    await user.type(input, sampleSuggestions[2].text);
 
     await user.click(
-      screen.getByRole('button', { name: sampleSuggestions[0] }),
+      screen.getByRole('button', { name: sampleSuggestions[0].text }),
     );
 
     expect(thread.getAllByRole('article')).toHaveLength(2);
     expect(
       within(thread.getByRole('article', { name: 'You' })).getByText(
-        sampleSuggestions[0],
+        sampleSuggestions[0].text,
         { exact: true },
       ),
     ).toBeVisible();
     expect(
-      thread.queryByText(sampleSuggestions[2], { exact: true }),
+      thread.queryByText(sampleSuggestions[2].text, { exact: true }),
     ).not.toBeInTheDocument();
     expect(
       within(thread.getByRole('article', { name: 'Assistant' })).getByText(

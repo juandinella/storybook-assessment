@@ -6,6 +6,11 @@ export type Citation = {
   kind: CitationKind;
 };
 
+export type Suggestion = {
+  id: string;
+  text: string;
+};
+
 export type Message = {
   id: string;
   role: 'user' | 'assistant';
